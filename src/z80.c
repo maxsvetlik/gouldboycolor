@@ -38,7 +38,7 @@ void cycle(){
     //the "big switch"
     switch(op) {
         case(0x00): break;                                      //noop. 4 cycles
-        case(0x01): reset(); break;                             //HALT. 4 cycles
+        case(0x10): reset(); break;                             //HALT. 4 cycles
         /* 8-bit loads*/
         /* LD nn,n
          * 8 cycles, unless specified */
@@ -59,7 +59,11 @@ void cycle(){
         case(0x7D): reg[A] = reg[L]; break;
         case(0x7E): 
             reg[A] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
-    
+        case(0xFA): 
+            reg[A] = mem[makeaddress(getData(), getData())];    //16 cycles
+            break;
+
+        case(0x3E): reg[A] = getData(); break;                  //8 cycles
         case(0x40): break;                                      // B = B
         case(0x41): reg[B] = reg[C]; break;
         case(0x42): reg[B] = reg[D]; break;
@@ -169,7 +173,27 @@ void cycle(){
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
         /*LD A,(n) where 0xFF00 is the base */
         case(0xF0): reg[A] = mem[0xFF00 + getData()]; break;    //12 cycles 
-        
+ 
+        /*
+         * 16-bit Loads
+         */
+        /*LD n,nn for a 16bit nn
+         * 12 cycles*/
+        case(0x01): reg[C] = getData(); reg[B] = getData(); break;
+        case(0x11): reg[E] = getData(); reg[D] = getData(); break;
+        case(0x21): reg[L] = getData(); reg[H] = getData(); break;
+        case(0x31): sp = makeaddress(getData(), getData()); break;
+        /*LD HL,sp - 8cycles*/
+        case(0xF9): sp = makeaddress(reg[H], reg[L]); break;
+        /*LD HL, SP+n - 12cycles
+         * flags affected: Z-reset, N-reset, H-re/set C-re/set */
+        case(0xF8): ;unsigned short int res = sp + getData();
+                    reg[H] = res >> 8;
+                    reg[L] = (res << 8) >> 8; break;
+                //TODO: handle flags
+        /*LD (nn),SP - 20 cycles*/
+        case(0x08): mem[makeaddress(getData(), getData())] = sp; break;
+        /*PUSH nn - 16 cycles*/
 
     }
 }
@@ -182,7 +206,7 @@ unsigned char getData(){
 }
 
 /* Creates a 16-bit address from given high and low bit registers */
-unsigned short int makeaddress(char high, char low){
+unsigned short int makeaddress(char low, char high){
     unsigned short int result = high;
     result = result << 8;
     result += low;
