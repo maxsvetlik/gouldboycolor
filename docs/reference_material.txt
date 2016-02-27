@@ -1,0 +1,6 @@
+Gameboy specific:
+    full manual         : http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
+    opcodes (chart)     : http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+
+Zilog Z80:
+    full opcode manual  : http://www.phy.davidson.edu/FacHome/dmb/py310/Z80.Instruction%20set.pdf
