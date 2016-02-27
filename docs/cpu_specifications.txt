@@ -1,0 +1,27 @@
+/* This file briefly describes aspects about the cpu implemented by z80.c
+ *
+ * This CPU is not a Zilog z80, nor an Intel 8080, but is roughly equivilent to the
+ * Panasonic Hybrid chip ( ) 
+ *
+ */
+
+ Registers:
+    8, 8-bit registers: A,B,C,D,E,H,L
+    These can be combined to create a 16-bit address in the following forms:
+    + AF
+    + BC
+    + DE
+    + HL
+
+    2, 16-bit registers: SP (stack pointer), PC (program counter)
+
+    Flags:
+        +Zero Flag - Set for ALU ops or 2 values match when CMP is run
+        +Subtract Flag - Set if the last math op was a subtraction
+        +Half Carry Flag - Set if a carry occured from the lower nibble in last ALU op
+        +Carry Flag - Set if carry occured in the last ALU op or A is the lower reg in a CMP op
+
+
+Memory:
+    The CPU is 8-bit but with a 16-bit SP. Thus there are 2^16 addressable memory entries.
+
