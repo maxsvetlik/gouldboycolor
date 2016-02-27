@@ -58,7 +58,7 @@ void cycle(){
         case(0x7C): reg[A] = reg[H]; break;
         case(0x7D): reg[A] = reg[L]; break;
         case(0x7E): 
-            reg[A] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[A] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
         case(0xFA): 
             reg[A] = mem[makeaddress(getData(), getData())];    //16 cycles
             break;
@@ -71,7 +71,7 @@ void cycle(){
         case(0x44): reg[B] = reg[H]; break;
         case(0x45): reg[B] = reg[L]; break;
         case(0x46): 
-            reg[B] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[B] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
         
         case(0x48): reg[C] = reg[B]; break;
         case(0x49): break;                                      // C = C
@@ -80,7 +80,7 @@ void cycle(){
         case(0x4C): reg[C] = reg[H]; break;
         case(0x4D): reg[C] = reg[L]; break;
         case(0x4E): 
-            reg[C] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[C] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
     
         case(0x50): reg[D] = reg[B]; break;
         case(0x51): reg[D] = reg[C]; break;
@@ -89,7 +89,7 @@ void cycle(){
         case(0x54): reg[D] = reg[H]; break;
         case(0x55): reg[D] = reg[L]; break;
         case(0x56): 
-            reg[D] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[D] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
     
         case(0x58): reg[E] = reg[B]; break;
         case(0x59): reg[E] = reg[C]; break;
@@ -98,7 +98,7 @@ void cycle(){
         case(0x5C): reg[E] = reg[H]; break;
         case(0x5D): reg[E] = reg[L]; break;
         case(0x5E): 
-            reg[E] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[E] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
     
         
         case(0x60): reg[H] = reg[B]; break;
@@ -108,7 +108,7 @@ void cycle(){
         case(0x64): break;                                      // H = H
         case(0x65): reg[H] = reg[L]; break;
         case(0x66): 
-            reg[H] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[H] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
     
         case(0x68): reg[L] = reg[B]; break;
         case(0x69): reg[L] = reg[C]; break;
@@ -117,22 +117,22 @@ void cycle(){
         case(0x6C): reg[L] = reg[H]; break;
         case(0x6D): break;                                      // L = L
         case(0x6E): 
-            reg[L] = mem[makeaddress(reg[H], reg[L])]; break;   //8 cycles
+            reg[L] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
         
         case(0x70): 
-            mem[makeaddress(reg[H], reg[L])] = reg[B]; break;   //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[B]; break;   //8 cycles
         case(0x71): 
-            mem[makeaddress(reg[H], reg[L])] = reg[C]; break;   //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[C]; break;   //8 cycles
         case(0x72): 
-            mem[makeaddress(reg[H], reg[L])] = reg[D]; break;   //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[D]; break;   //8 cycles
         case(0x73): 
-            mem[makeaddress(reg[H], reg[L])] = reg[E]; break;   //8 cycles   
+            mem[makeaddress(reg[L], reg[H])] = reg[E]; break;   //8 cycles   
         case(0x74): 
-            mem[makeaddress(reg[H], reg[L])] = reg[H]; break;   //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[H]; break;   //8 cycles
         case(0x75): 
-            mem[makeaddress(reg[H], reg[L])] = reg[L]; break;   //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[L]; break;   //8 cycles
         case(0x36):
-            mem[makeaddress(reg[H], reg[L])] = getData();       //12 cycles
+            mem[makeaddress(reg[L], reg[H])] = getData();       //12 cycles
             break;
     
         /* LD n,A
@@ -144,11 +144,11 @@ void cycle(){
         case(0x67): reg[H] = reg[A]; break;
         case(0x6F): reg[L] = reg[A]; break;
         case(0x02): 
-            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+            mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
         case(0x12): 
-            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+            mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
         case(0x77): 
-            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+            mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
         case(0xEA):
             mem[makeaddress(getData(), getData())] = reg[A];    //16 cycles
             break;
@@ -158,16 +158,16 @@ void cycle(){
         case(0xE2): mem[0xFF00 + reg[C]] = reg[A]; break;       //8 cycles
         
         /*LD A,(HLD) - HL dec*/
-        case(0x3A): reg[A] = mem[makeaddress(reg[H], reg[L])];  //8 cycles
+        case(0x3A): reg[A] = mem[makeaddress(reg[L], reg[H])];  //8 cycles
                     reg[L] -= 1; break;
         /*LD (HLD),A - HL dec*/
-        case(0x32): mem[makeaddress(reg[H], reg[L])] = reg[A];
+        case(0x32): mem[makeaddress(reg[L], reg[H])] = reg[A];
                     reg[L] -= 1; break;                         //8 cycles
         /*LD A,(HLD) - HL inc */
-        case(0x2A): reg[A] = mem[makeaddress(reg[H], reg[L])];
+        case(0x2A): reg[A] = mem[makeaddress(reg[L], reg[H])];
                     reg[L] += 1; break;                         //8 cycles
         /*LD (HLD),A - HL inc */
-        case(0x22): mem[makeaddress(reg[H], reg[L])] = reg[A];
+        case(0x22): mem[makeaddress(reg[L], reg[H])] = reg[A];
                     reg[L] += 1; break;                         //8 cycles
         /*LD (n),A where 0xFF00 is the base */
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
@@ -179,12 +179,12 @@ void cycle(){
          */
         /*LD n,nn for a 16bit nn
          * 12 cycles*/
-        case(0x01): reg[C] = getData(); reg[B] = getData(); break;
-        case(0x11): reg[E] = getData(); reg[D] = getData(); break;
-        case(0x21): reg[L] = getData(); reg[H] = getData(); break;
+        case(0x01): reg[B] = getData(); reg[C] = getData(); break;
+        case(0x11): reg[D] = getData(); reg[E] = getData(); break;
+        case(0x21): reg[H] = getData(); reg[L] = getData(); break;
         case(0x31): sp = makeaddress(getData(), getData()); break;
         /*LD HL,sp - 8cycles*/
-        case(0xF9): sp = makeaddress(reg[H], reg[L]); break;
+        case(0xF9): sp = makeaddress(reg[L], reg[H]); break;
         /*LD HL, SP+n - 12cycles
          * flags affected: Z-reset, N-reset, H-re/set C-re/set */
         case(0xF8): ;unsigned short int res = sp + getData();
@@ -194,7 +194,7 @@ void cycle(){
         /*LD (nn),SP - 20 cycles*/
         case(0x08): mem[makeaddress(getData(), getData())] = sp; break;
         /*PUSH nn - 16 cycles*/
-
+        
     }
 }
 
