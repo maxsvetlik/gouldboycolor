@@ -29,7 +29,7 @@ void cycle(){
     unsigned short int inst = mem[pc];
     pc += 1;
 
-    char op = inst;
+    unsigned char op = inst;
     
     if(DEBUG && DB_OPCODE){
         printf("Instruction: %x\n",inst);
@@ -130,11 +130,52 @@ void cycle(){
         case(0x36):
             mem[makeaddress(reg[H], reg[L])] = getData();       //12 cycles
             break;
+    
+        /* LD n,A
+         * 4 cycles, unless specified */
+        case(0x47): reg[B] = reg[A]; break;
+        case(0x4F): reg[B] = reg[A]; break;
+        case(0x57): reg[C] = reg[A]; break;
+        case(0x5F): reg[D] = reg[A]; break;
+        case(0x67): reg[H] = reg[A]; break;
+        case(0x6F): reg[L] = reg[A]; break;
+        case(0x02): 
+            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+        case(0x12): 
+            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+        case(0x77): 
+            mem[makeaddress(reg[B], reg[C])] = reg[A]; break;  //8 cycles
+        case(0xEA):
+            mem[makeaddress(getData(), getData())] = reg[A];    //16 cycles
+            break;
+    
+        /*LD A,(C) where 0xFF00 is the base*/
+        case(0xF2): reg[A] = mem[0xFF00 + reg[C] ]; break;      //8 cycles
+        case(0xE2): mem[0xFF00 + reg[C]] = reg[A]; break;       //8 cycles
+        
+        /*LD A,(HLD) - HL dec*/
+        case(0x3A): reg[A] = mem[makeaddress(reg[H], reg[L])];  //8 cycles
+                    reg[L] -= 1; break;
+        /*LD (HLD),A - HL dec*/
+        case(0x32): mem[makeaddress(reg[H], reg[L])] = reg[A];
+                    reg[L] -= 1; break;                         //8 cycles
+        /*LD A,(HLD) - HL inc */
+        case(0x2A): reg[A] = mem[makeaddress(reg[H], reg[L])];
+                    reg[L] += 1; break;                         //8 cycles
+        /*LD (HLD),A - HL inc */
+        case(0x22): mem[makeaddress(reg[H], reg[L])] = reg[A];
+                    reg[L] += 1; break;                         //8 cycles
+        /*LD (n),A where 0xFF00 is the base */
+        case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
+        /*LD A,(n) where 0xFF00 is the base */
+        case(0xF0): reg[A] = mem[0xFF00 + getData()]; break;    //12 cycles 
+        
+
     }
 }
 
 /* Gets the next byte of data in memory */
-char getData(){
+unsigned char getData(){
     char res = mem[pc];
     pc += 1;
     return res;

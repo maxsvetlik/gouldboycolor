@@ -26,6 +26,6 @@
 
 
 void cycle();
-char getData();
+unsigned char getData();
 unsigned short int makeaddress(char high, char low);
 void reset();
