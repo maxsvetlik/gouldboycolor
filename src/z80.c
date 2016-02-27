@@ -22,7 +22,10 @@ unsigned char mem[MEM_SIZE];
 char reg[GP_REGS];
 unsigned short int pc;
 unsigned short int sp;
-//add flags
+unsigned char f_z;
+unsigned char f_s;
+unsigned char f_hc;
+unsigned char f_c;
 
 
 void cycle(){
@@ -188,13 +191,39 @@ void cycle(){
         /*LD HL, SP+n - 12cycles
          * flags affected: Z-reset, N-reset, H-re/set C-re/set */
         case(0xF8): ;unsigned short int res = sp + getData();
-                    reg[H] = res >> 8;
-                    reg[L] = (res << 8) >> 8; break;
-                //TODO: handle flags
+            reg[H] = res >> 8;
+            reg[L] = (res << 8) >> 8;
+            f_z = 0; f_s = 0;
+            f_hc = ((sp << 8) >> 8) >= reg[L];
+            f_c = sp >= res;
+            break;
         /*LD (nn),SP - 20 cycles*/
         case(0x08): mem[makeaddress(getData(), getData())] = sp; break;
         /*PUSH nn - 16 cycles*/
-        
+        case(0xF5): 
+            mem[sp] = reg[A]; sp-=1; mem[sp] = reg[F]; sp-=1; break;
+        case(0xC5): 
+            mem[sp] = reg[B]; sp-=1; mem[sp] = reg[C]; sp-=1; break;
+        case(0xD5): 
+            mem[sp] = reg[D]; sp-=1; mem[sp] = reg[E]; sp-=1; break;
+        case(0xE5): 
+            mem[sp] = reg[H]; sp-=1; mem[sp] = reg[L]; sp-=1; break;
+        /*POP nn - 12 cycles*/
+        case(0xF1): 
+            reg[F] = mem[sp]; sp+=1; reg[A] = mem[sp]; sp+=1; break;
+        case(0xC1): 
+            reg[C] = mem[sp]; sp+=1; reg[B] = mem[sp]; sp+=1; break;
+        case(0xD1): 
+            reg[E] = mem[sp]; sp+=1; reg[D] = mem[sp]; sp+=1; break;
+        case(0xE1): 
+            reg[L] = mem[sp]; sp+=1; reg[H] = mem[sp]; sp+=1; break;
+
+        /*
+         * ALU - Arithmetic operations
+         */
+
+
+
     }
 }
 
