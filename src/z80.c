@@ -452,6 +452,39 @@ void cycle(){
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
 
+        /* XOR: logical xor n with A -> A
+            Z: Set if 0, all other flags: reset
+            4 cycles unless specified*/
+
+        case(0xAF): val = reg[A] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xA8): val = reg[B] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xA9): val = reg[C] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xAA): val = reg[D] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xAB): val = reg[E] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xAC): val = reg[H] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xAD): val = reg[L] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xAE): val = mem[makeaddress(reg[H], reg[L])] ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
+        case(0xEE): val = getData() ^ reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
+
+
 
 
 
