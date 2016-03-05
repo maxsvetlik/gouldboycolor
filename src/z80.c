@@ -27,6 +27,10 @@ unsigned char f_s;
 unsigned char f_hc;
 unsigned char f_c;
 
+/* These are TEMPORARY vars not part of the CPU state */
+unsigned char val;
+unsigned char val2;
+
 
 void cycle(){
     unsigned short int inst = mem[pc];
@@ -102,7 +106,7 @@ void cycle(){
         case(0x5D): reg[E] = reg[L]; break;
         case(0x5E): 
             reg[E] = mem[makeaddress(reg[L], reg[H])]; break;   //8 cycles
-    
+
         
         case(0x60): reg[H] = reg[B]; break;
         case(0x61): reg[H] = reg[C]; break;
@@ -221,9 +225,101 @@ void cycle(){
         /*
          * ALU - Arithmetic operations
          */
+        
+        /*8-bit ALU ops*/
+        //add n to A. all flags affected. 4cylces unless specified
+        case(0x87): val = reg[A];
+                    reg[A] = reg[A] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val);                break;
+        case(0x80): val = reg[A];
+                    reg[A] = reg[B] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[B]);             break;
+        case(0x81): val = reg[A];
+                    reg[A] = reg[C] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[C]);             break;
+        case(0x82): val = reg[A];
+                    reg[A] = reg[D] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[D]);             break;
+        case(0x83): val = reg[A];
+                    reg[A] = reg[E] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[E]);             break;
+        case(0x84): val = reg[A];
+                    reg[A] = reg[H] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[H]);             break;
+        case(0x85): val = reg[A];
+                    reg[A] = reg[L] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val);                break;
+        case(0x86): val = reg[A];
+                    reg[A] = mem[makeaddress(reg[H], reg[L])] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    break; //8 cycles
+        case(0xC6): val = reg[A];
+                    val2 = getData();
+                    reg[A] = val2 + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val2);               break; //8 cycles
+
+        /* n + CARRY -> A. 4 cycles unless noted*/
+        case(0x8F): val = reg[A] + f_c;
+                    reg[A] = reg[A] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val);                break;
+        case(0x88): val = reg[A] + f_c;
+                    reg[A] = reg[B] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[B]);             break;
+        case(0x89): val = reg[A] + f_c;
+                    reg[A] = reg[C] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[C]);             break;
+        case(0x8A): val = reg[A] + f_c;
+                    reg[A] = reg[D] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[D]);             break;
+        case(0x8B): val = reg[A] + f_c;
+                    reg[A] = reg[E] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[E]);             break;
+        case(0x8C): val = reg[A] + f_c;
+                    reg[A] = reg[H] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,reg[H]);             break;
+        case(0x8D): val = reg[A] + f_c;
+                    reg[A] = reg[L] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val);                break;
+        case(0x8E): val = reg[A] + f_c;
+                    reg[A] = mem[makeaddress(reg[H], reg[L])] + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    break; //8 cycles
+        case(0xCE): val = reg[A] + f_c;
+                    val2 = getData();
+                    reg[A] = val2 + reg[A];
+                    f_s = 0; f_z = reg[A] == 0;
+                    setflags_carry(ADD,val,val2);               break; //8 cycles
 
 
 
+
+
+
+    }
+}
+
+/* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly*/
+void setflags_carry(char op, unsigned char val1, unsigned char val2){
+    if(op == ADD){
+        f_hc = ((val1 << 5) >> 7) & ((val2 << 5) >> 7);
+        f_c = ((val2 << 1) >> 7) & ((val1 << 1) >> 7);
     }
 }
 

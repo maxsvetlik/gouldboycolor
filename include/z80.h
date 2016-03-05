@@ -23,9 +23,11 @@
 #define H 6
 #define L 7
 
-
+#define ADD 1
+#define SUB 2
 
 void cycle();
+void setflags_carry(char op, unsigned char val1, unsigned char val2);
 unsigned char getData();
 unsigned short int makeaddress(char high, char low);
 void reset();
