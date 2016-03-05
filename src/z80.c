@@ -307,7 +307,150 @@ void cycle(){
                     f_s = 0; f_z = reg[A] == 0;
                     setflags_carry(ADD,val,val2);               break; //8 cycles
 
+        //sub n to A. all flags affected. 4cycles unless specified
+        case(0x97): val = reg[A];
+                    reg[A] = reg[A] - reg[A];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val);                break;
+        case(0x90): val = reg[A];
+                    reg[A] = reg[A] - reg[B];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[B]);             break;
+        case(0x91): val = reg[A];
+                    reg[A] = reg[A] - reg[C];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[C]);             break;
+        case(0x92): val = reg[A];
+                    reg[A] = reg[A] - reg[D];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[D]);             break;
+        case(0x93): val = reg[A];
+                    reg[A] = reg[A] - reg[E];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[E]);             break;
+        case(0x94): val = reg[A];
+                    reg[A] = reg[A] - reg[H];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[H]);             break;
+        case(0x95): val = reg[A];
+                    reg[A] = reg[A] - reg[L];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val);                break;
+        case(0x96): val = reg[A];
+                    reg[A] = reg[A] - mem[makeaddress(reg[H], reg[L])];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    break; //8 cycles
+        case(0xD6): val = reg[A];
+                    val2 = getData();
+                    reg[A] = reg[A] - val2;
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val2);               break; //8 cycles
 
+        // A<- A - n - CARRY. all flags affected. 4cycles unless specified
+        case(0x9F): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[A];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val);                break;
+        case(0x98): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[B];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[B]);             break;
+        case(0x99): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[C];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[C]);             break;
+        case(0x9A): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[D];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[D]);             break;
+        case(0x9B): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[E];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[E]);             break;
+        case(0x9C): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[H];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,reg[H]);             break;
+        case(0x9D): val = reg[A] - f_c;
+                    reg[A] = reg[A] - reg[L];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val);                break;
+        case(0x9E): val = reg[A] - f_c;
+                    reg[A] = reg[A] - mem[makeaddress(reg[H], reg[L])];
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    break; //8 cycles
+        /* undefined op: A<- A - # - CARRY
+        case(0xD6): val = reg[A] - f_c;
+                    val2 = getData();
+                    reg[A] = reg[A] - val2;
+                    f_s = 1; f_z = reg[A] == 0;
+                    setflags_carry(SUB,val,val2);               break; //8 cycles
+        */
+        
+        /* AND: logical and n with A -> A
+            HC flag: set, C flag: reset. Set others accordingly
+            4 cycles unless specified*/
+        case(0xA7): val = reg[A] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA0): val = reg[B] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA1): val = reg[C] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA2): val = reg[D] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA3): val = reg[E] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA4): val = reg[H] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA5): val = reg[L] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
+        case(0xA6): val = mem[makeaddress(reg[H], reg[L])] && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;      //8 cycles
+        case(0xE6): val = getData() && reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;      //8 cycles
+
+        /* OR: logical or n with A -> A
+            Z: Set if 0, all other flags: reset
+            4 cycles unless specified*/
+
+        case(0xB7): val = reg[A] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB0): val = reg[B] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB1): val = reg[C] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB2): val = reg[D] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB3): val = reg[E] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB4): val = reg[H] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB5): val = reg[L] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
+        case(0xB6): val = mem[makeaddress(reg[H], reg[L])] || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
+        case(0xF6): val = getData() || reg[A];
+                    reg[A] = val;
+                    f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
 
 
 
@@ -316,10 +459,21 @@ void cycle(){
 }
 
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly*/
-void setflags_carry(char op, unsigned char val1, unsigned char val2){
+void setflags_carry(char op, unsigned char x, unsigned char y){
     if(op == ADD){
-        f_hc = ((val1 << 5) >> 7) & ((val2 << 5) >> 7);
-        f_c = ((val2 << 1) >> 7) & ((val1 << 1) >> 7);
+        f_hc = ((x << 5) >> 7) & ((y << 5) >> 7);
+        f_c = ((x << 1) >> 7) & ((y << 1) >> 7);
+    }
+    else if(op == SUB){
+        char x7 = x >> 7;
+        char y7 = y >> 7;
+        char r7 = (x - y) >> 7;
+        f_c = (~x7 & y7) | (y7 & r7) | (r7 & ~x7);
+        
+        char x3 = x >> 4;
+        char y3 = y >> 4;
+        char r3 = (x - y) >> 4;
+        f_hc = (~x3 & y3) | (y3 & r3) | (r3 & ~x3);
     }
 }
 
