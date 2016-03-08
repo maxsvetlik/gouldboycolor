@@ -489,41 +489,32 @@ void cycle(){
         case(0xBF): f_z = reg[A] == reg[A]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[A]);
                     f_c = reg[A] < reg[A];                      break;
-
         case(0xB8): f_z = reg[A] == reg[B]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[B]);
                     f_c = reg[A] < reg[B];                      break;
-
         case(0xB9): f_z = reg[A] == reg[C]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[C]);
                     f_c = reg[A] < reg[C];                      break;
-
         case(0xBA): f_z = reg[A] == reg[D]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[D]);
                     f_c = reg[A] < reg[D];                      break;
-
         case(0xBB): f_z = reg[A] == reg[E]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[E]);
                     f_c = reg[A] < reg[E];                      break;
-
         case(0xBC): f_z = reg[A] == reg[H]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[H]);
                     f_c = reg[A] < reg[H];                      break;
-
         case(0xBD): f_z = reg[A] == reg[L]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[L]);
                     f_c = reg[A] < reg[L];                      break;
-
         case(0xBE): val = mem[makeaddress(reg[H], reg[L])];
                     f_z = reg[A] == val; f_s = 1;
                     setflags_carry(SUB,reg[A],val);
                     f_c = reg[A] < val;                         break;      //8 cycles
-        
         case(0xFE): val = getData();
                     f_z = reg[A] == val; f_s = 1;
                     setflags_carry(SUB,reg[A],val);
                     f_c = reg[A] < val;                         break;      //8 cycles
-
 
         /*INC n - increment register. f_s reset. f_c unaffected. 
             f_hc set for b3 carry 4 cycles unless specified*/
@@ -535,7 +526,7 @@ void cycle(){
                     reg[B] = val;                               break;
         case(0x0C): val = reg[C] + 1; f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, reg[C], val);
-                    reg[C] = val;
+                    reg[C] = val;                               break;
         case(0x14): val = reg[D] + 1; f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, reg[D], val);
                     reg[D] = val;                               break;
@@ -550,17 +541,36 @@ void cycle(){
                     reg[L] = val;                               break;
         case(0x34): val = mem[makeaddress(reg[H],reg[L])] + 1; 
                     f_z = !!val; f_s = 0;
-                    set_hc_3b(ADD, reg[H], mem[makeaddress(reg[H],reg[L])] );
+                    set_hc_3b(ADD, val, mem[makeaddress(reg[H],reg[L])] );
                     mem[makeaddress(reg[H], reg[L])] = val;     break;      //12 cycles
 
-
-
- 
- 
- 
- 
- 
-                    
+        /*DEC n - deccrement register. f_s set. f_c unaffected. 
+            f_hc set for if no carry from b4. 4 cycles unless specified*/
+        case(0x3D): val = reg[A] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[A], 1);
+                    reg[A] = val;                               break;
+        case(0x05): val = reg[B] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[B], 1);                
+                    reg[B] = val;                               break;
+        case(0x0D): val = reg[C] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[C], 1);
+                    reg[C] = val;                               break;
+        case(0x15): val = reg[D] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[D], 1);
+                    reg[D] = val;                               break;
+        case(0x1D): val = reg[E] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[E], 1);
+                    reg[E] = val;                               break;
+        case(0x25): val = reg[H] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[H], 1);
+                    reg[H] = val;                               break;
+        case(0x2D): val = reg[L] - 1; f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, reg[L], 1);
+                    reg[L] = val;                               break;
+        case(0x35): val = mem[makeaddress(reg[H],reg[L])] - 1; 
+                    f_z = !!val; f_s = 0;
+                    set_hc_nb_4b(SUB, mem[makeaddress(reg[H],reg[L])], 1);
+                    mem[makeaddress(reg[H], reg[L])] = val;     break;      //12 cycles
 
     }
 }
@@ -584,11 +594,22 @@ void setflags_carry(char op, unsigned char x, unsigned char y){
     }
 }
 
+/* Sets the hc flag if there is carry in bit 3
+ */
 void set_hc_3b(char op, unsigned char x, unsigned char y){
-    if(op == ADD){
+    if(op == ADD)
         f_hc = ((x << 5) >> 7) & ((y << 5) >> 7);
-    }
+}
 
+/* Sets the hc flag if there is is `no borrow` from bit 4
+ */
+void set_hc_nb_4b(char op, unsigned char x, unsigned char y){
+    if(op == SUB){
+        char x4 = x >> 4;
+        char y4 = y >> 4;
+        char r4 = (x - y) >> 4;
+        f_hc = !((~x4 & y4) | (y4 & r4) | (r4 & ~x4));
+    }
 }
 
 /* Gets the next byte of data in memory */
