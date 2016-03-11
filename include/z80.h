@@ -33,4 +33,11 @@ void set_hc_3b(char op, unsigned char val1, unsigned char val2);
 void set_hc_nb_4b(char op, unsigned char val1, unsigned char val2);
 unsigned char getData();
 unsigned short int makeaddress(char high, char low);
+void halt();
+void stop();
 void reset();
+void crash_dump();
+void disable_interrupt_on_next();
+void enable_interrupt_on_next();
+
+

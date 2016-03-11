@@ -47,8 +47,6 @@ void cycle(){
     }
     //the "big switch"
     switch(op) {
-        case(0x00): break;                                      //noop. 4 cycles
-        case(0x10): reset(); break;                             //HALT. 4 cycles
         /* 8-bit loads*/
         /* LD nn,n
          * 8 cycles, unless specified */
@@ -617,7 +615,62 @@ void cycle(){
         case(0x2B): mem[makeaddress(reg[H], reg[L])] -= 1;      break;
         case(0x3B): sp -= 1;                                    break;
         
+        /* 
+         * END OF ALU
+         * Misc Operations ->
+         */
+        /*Swap upper and lower nibbles of n. f_z set if applic., 
+         * f_s, f_hc, f_c reset. 8 cycles unless specified.*/
+        case(0xCB): val = getData();
+                    switch(val){
+                        case(0x37): val2 = 0; val2 = val2 | (reg[A] & 0x0F);
+                            val2 = (val2 << 3) | (reg[A] & 0xF0);   break;
+                        case(0x30): val2 = 0; val2 = val2 | (reg[B] & 0x0F);
+                            val2 = (val2 << 3) | (reg[B] & 0xF0);   break;
+                        case(0x31): val2 = 0; val2 = val2 | (reg[C] & 0x0F);
+                            val2 = (val2 << 3) | (reg[C] & 0xF0);   break;
+                        case(0x32): val2 = 0; val2 = val2 | (reg[D] & 0x0F);
+                            val2 = (val2 << 3) | (reg[D] & 0xF0);   break;
+                        case(0x33): val2 = 0; val2 = val2 | (reg[E] & 0x0F);
+                            val2 = (val2 << 3) | (reg[E] & 0xF0);   break;
+                        case(0x34): val2 = 0; val2 = val2 | (reg[H] & 0x0F);
+                            val2 = (val2 << 3) | (reg[H] & 0xF0);   break;
+                        case(0x35): val2 = 0; val2 = val2 | (reg[L] & 0x0F);
+                            val2 = (val2 << 3) | (reg[L] & 0xF0);   break;
+                        case(0x36): val = mem[makeaddress(reg[H], reg[L])];
+                                    val2 = 0; val2 = val2 | (val & 0x0F);
+                                    val2 = (val2 << 3) | (val & 0xF0);   break; //16 cycles
+                    }
+                    //potentially unsafe
+                    f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;
+                                                                break;
+        /*DAA - Decimal adjust register A. */
 
+        /*Complement Register A. set f_s, f_hc. others not affected. 4 cycles*/
+        case(0x2F): reg[A] = ~reg[A]; f_s = 1; f_hc = 1;            break;
+        
+        /*Complement Carry flag. f_z unaffected. f_s, f_hc reset. 4 cycles*/
+        case(0x3F): f_c = !f_c; f_s = 0; f_hc = 0;                  break;
+
+        /*Set carry flag. f_z unaffected. f_s, f_hc reset. 4 cycles.*/
+        case(0x37): f_c = 1; f_s = 0; f_hc = 0;                     break;
+
+        /*Noop. 4 cycles*/
+        case(0x00):                                                 break;
+        /*halt. Power down until interrupt. Power saving feature. 4 cycles*/
+        case(0x76): halt();                                         break;
+        /*stop. Halts CPU and screen until button pressed. 4 cycles.
+         * note: 2byte instruction 0x1000 that I'm shortening to 0x10*/
+        case(0x10): stop();                                         break;
+        /* Disable interrupts after the instruction AFTER this one 
+         * is executed. 4 cycles*/
+        case(0xF3): disable_interrupt_on_next();                    break;
+        /* Enable interrupts after the instruction AFTER this one 
+         * is executed. 4 cycles*/
+        case(0xFB): enable_interrupt_on_next();                     break;
+        
+        default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
+                    crash_dump();                                   break;
     }
 }
 
@@ -701,6 +754,11 @@ void reset(){
     pc = 0x100; //beginning of the bootup rom sequence
     sp = 0xFFFE;
 }
+void halt(){}
+void stop(){}
+void disable_interrupt_on_next(){}
+void enable_interrupt_on_next(){}
+void crash_dump(){}
 
 int main(int argc, char** argv){
     reset();
