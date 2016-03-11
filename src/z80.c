@@ -30,7 +30,8 @@ unsigned char f_c;
 /* These are TEMPORARY vars not part of the CPU state */
 unsigned char val;
 unsigned char val2;
-
+unsigned short int usi;
+unsigned short int usi2;
 
 void cycle(){
     unsigned short int inst = mem[pc];
@@ -571,11 +572,39 @@ void cycle(){
                     f_z = !!val; f_s = 0;
                     set_hc_nb_4b(SUB, mem[makeaddress(reg[H],reg[L])], 1);
                     mem[makeaddress(reg[H], reg[L])] = val;     break;      //12 cycles
+        
+        /*
+         * 16 bit ALU
+         */
+
+        /* add n to HL. 8 cycles.
+         * f_z = not affected, f_s reset, f_hc = if carry from bit 11,
+         * f_c = if carry from bit 15 */
+        case(0x09): usi = mem[makeaddress(reg[H], reg[L])];
+                    usi2 = mem[makeaddress(reg[B], reg[C])];
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+        case(0x19): usi = mem[makeaddress(reg[H], reg[L])];
+                    usi2 = mem[makeaddress(reg[D], reg[E])];
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+        case(0x29): usi = mem[makeaddress(reg[H], reg[L])];
+                    usi2 = mem[makeaddress(reg[H], reg[L])];
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+        case(0x39): usi = mem[makeaddress(reg[H], reg[L])];
+                    usi2 = sp;
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+    
+
+
 
     }
 }
 
-/* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly*/
+/* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly
+ * Note: This is an 8bit function*/
 void setflags_carry(char op, unsigned char x, unsigned char y){
     if(op == ADD){
         f_hc = ((x << 5) >> 7) & ((y << 5) >> 7);
@@ -590,6 +619,26 @@ void setflags_carry(char op, unsigned char x, unsigned char y){
         char x3 = x >> 4;
         char y3 = y >> 4;
         char r3 = (x - y) >> 4;
+        f_hc = (~x3 & y3) | (y3 & r3) | (r3 & ~x3);
+    }
+}
+/*Sets the HC flag for a carry on bit 11.
+ * Sets the C flag for a carry on bit 15.
+ * Note: This is a 16 bit function (obviously) */
+void setflags_carry16(char op, unsigned short int x, unsigned short int y){
+    if(op == ADD){
+        f_hc = ((x << 4) >> 15) & ((y << 4) >> 15);
+        f_c = ((x << 1) >> 15) & ((y << 1) >> 15);
+    }
+    else if(op == SUB){
+        unsigned short int x7 = x >> 7;
+        unsigned short int y7 = y >> 7;
+        unsigned short int r7 = (x - y) >> 7;
+        f_c = (~x7 & y7) | (y7 & r7) | (r7 & ~x7);
+        
+        unsigned short int x3 = x >> 4;
+        unsigned short int y3 = y >> 4;
+        unsigned short int r3 = (x - y) >> 4;
         f_hc = (~x3 & y3) | (y3 & r3) | (r3 & ~x3);
     }
 }
