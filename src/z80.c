@@ -15,6 +15,7 @@
 #include<stdio.h>
 
 #include "z80.h"
+#include "error.h"
 
 #define DEBUG 1
 #define DB_OPCODE 1
@@ -747,10 +748,15 @@ unsigned short int makeaddress(char low, char high){
     return result;
 }
 
+void clear_mem(){
+    int i;
+    for(i = 0; i < MEM_SIZE; i+=1)
+        mem[i] = 0;
+}
 //power on or reset sequence.
 //initializes the state as the gameboy expects
 void reset(){
-
+    clear_mem();
     pc = 0x100; //beginning of the bootup rom sequence
     sp = 0xFFFE;
 }
@@ -758,11 +764,11 @@ void halt(){}
 void stop(){}
 void disable_interrupt_on_next(){}
 void enable_interrupt_on_next(){}
-void crash_dump(){}
 
 int main(int argc, char** argv){
     reset();
     mem[0x100] = 0x12;  
-    cycle();
+    //cycle();
+    crash_dump();
     return 0;
 }

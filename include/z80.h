@@ -26,6 +26,15 @@
 #define ADD 1
 #define SUB 2
 
+extern unsigned char       mem[];
+extern char                reg[];
+extern unsigned short int  pc;
+extern unsigned short int  sp;
+extern unsigned char       f_z;
+extern unsigned char       f_s;
+extern unsigned char       f_hc;
+extern unsigned char       f_c;
+
 void cycle();
 void setflags_carry(char op, unsigned char val1, unsigned char val2);
 void setflags_carry16(char op, unsigned short int val1, unsigned short int val2);
@@ -36,8 +45,6 @@ unsigned short int makeaddress(char high, char low);
 void halt();
 void stop();
 void reset();
-void crash_dump();
 void disable_interrupt_on_next();
 void enable_interrupt_on_next();
-
-
+void clear_mem();
