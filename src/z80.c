@@ -20,18 +20,20 @@
 #define DB_OPCODE 1
 unsigned char mem[MEM_SIZE];
 char reg[GP_REGS];
-unsigned short int pc;
-unsigned short int sp;
-unsigned char f_z;
-unsigned char f_s;
-unsigned char f_hc;
-unsigned char f_c;
+unsigned short int  pc;
+unsigned short int  sp;
+unsigned char       f_z;
+unsigned char       f_s;
+unsigned char       f_hc;
+unsigned char       f_c;
 
 /* These are TEMPORARY vars not part of the CPU state */
-unsigned char val;
-unsigned char val2;
-unsigned short int usi;
-unsigned short int usi2;
+unsigned char       val;
+unsigned char       val2;
+unsigned short int  usi;
+unsigned short int  usi2;
+char                sval;
+
 
 void cycle(){
     unsigned short int inst = mem[pc];
@@ -583,22 +585,38 @@ void cycle(){
         case(0x09): usi = mem[makeaddress(reg[H], reg[L])];
                     usi2 = mem[makeaddress(reg[B], reg[C])];
                     setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
         case(0x19): usi = mem[makeaddress(reg[H], reg[L])];
                     usi2 = mem[makeaddress(reg[D], reg[E])];
                     setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
         case(0x29): usi = mem[makeaddress(reg[H], reg[L])];
                     usi2 = mem[makeaddress(reg[H], reg[L])];
                     setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
         case(0x39): usi = mem[makeaddress(reg[H], reg[L])];
                     usi2 = sp;
                     setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2;
-    
-
-
+                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
+        /* Add n to sp, n is a 1byte signed immediate.
+         * f_z reset, f_s reset, f_hc f_c set  16 cycles. */
+        case(0xE8): sval = getData();
+                    usi = sp + sval;
+                    f_hc = ((usi & 0x80) >> 3) ^ ((sp & 0x80) >> 3);
+                    f_c = ((usi & 0x8000) >> 15) ^ ((sp & 0x8000) >> 15);
+                    f_z = 0; f_s = 0;
+                    sp = usi;                                   break;
+        /* Inc nn register. No flags affected. 8 cycles*/
+        case(0x03): mem[makeaddress(reg[B], reg[C])] += 1;      break;
+        case(0x13): mem[makeaddress(reg[D], reg[E])] += 1;      break;
+        case(0x23): mem[makeaddress(reg[H], reg[L])] += 1;      break;
+        case(0x33): sp += 1;                                    break;
+        /* Dec nn register. No flags affected. 8 cycles*/
+        case(0x0B): mem[makeaddress(reg[B], reg[C])] -= 1;      break;
+        case(0x1B): mem[makeaddress(reg[D], reg[E])] -= 1;      break;
+        case(0x2B): mem[makeaddress(reg[H], reg[L])] -= 1;      break;
+        case(0x3B): sp -= 1;                                    break;
+        
 
     }
 }
