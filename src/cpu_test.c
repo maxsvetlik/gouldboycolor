@@ -89,6 +89,7 @@ void print_global_menu(){
     printf("2 - Set Memory\n");
     printf("3 - Read State\n");
     printf("4 - Read Memory\n");
+    printf("9 - Call cycle\n");
 }
 void print_set_state_menu(){
     printf("0 - Back\n");
@@ -155,9 +156,9 @@ void interactive_session(){
         input = get_menu_input();
         switch(input){
             case('0'): printf("Exiting.\n");  break;
-            case('1'): handle_set_reg(); break;
-            case('2'): handle_set_mem(); break;
-            case('3'): print_state(); break;
+            case('1'): handle_set_reg();    break;
+            case('2'): handle_set_mem();    break;
+            case('3'): print_state();       break;
             case('4'): 
                 printf("Enter the base address: ");
                 val1 = getint();
@@ -165,6 +166,7 @@ void interactive_session(){
                 val2 = getint();
                 print_mem(val1, val2);
                 break;
+            case('9'): cycle();             break;
             default: printf("Unsupported command, please try again.\n"); 
         }
     }
