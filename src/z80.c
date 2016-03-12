@@ -37,7 +37,7 @@ char                sval;
 
 
 void cycle(){
-    unsigned short int inst = mem[pc];
+    unsigned char inst = mem[pc];
     pc += 1;
 
     unsigned char op = inst;
@@ -191,7 +191,9 @@ void cycle(){
         case(0x01): reg[B] = getData(); reg[C] = getData(); break;
         case(0x11): reg[D] = getData(); reg[E] = getData(); break;
         case(0x21): reg[H] = getData(); reg[L] = getData(); break;
-        case(0x31): sp = makeaddress(getData(), getData()); break;
+        case(0x31): 
+                    val = getData(); val2 = getData();
+                    sp = makeaddress(val2, val); break;
         /*LD HL,sp - 8cycles*/
         case(0xF9): sp = makeaddress(reg[L], reg[H]); break;
         /*LD HL, SP+n - 12cycles
@@ -204,7 +206,9 @@ void cycle(){
             f_c = sp >= res;
             break;
         /*LD (nn),SP - 20 cycles*/
-        case(0x08): mem[makeaddress(getData(), getData())] = sp; break;
+        case(0x08): 
+            val = getData(); val2 = getData();
+            mem[makeaddress(val2, val)] = sp; break;
         /*PUSH nn - 16 cycles*/
         case(0xF5): 
             mem[sp] = reg[A]; sp-=1; mem[sp] = reg[F]; sp-=1; break;
@@ -259,9 +263,9 @@ void cycle(){
                     f_s = 0; f_z = reg[A] == 0;
                     setflags_carry(ADD,val,val);                break;
         case(0x86): val = reg[A];
-                    reg[A] = mem[makeaddress(reg[H], reg[L])] + reg[A];
+                    reg[A] = mem[makeaddress(reg[L], reg[H])] + reg[A];
                     f_s = 0; f_z = reg[A] == 0;
-                    setflags_carry(ADD,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    setflags_carry(ADD,val,mem[makeaddress(reg[L], reg[H])]) ;
                     break; //8 cycles
         case(0xC6): val = reg[A];
                     val2 = getData();
@@ -299,9 +303,9 @@ void cycle(){
                     f_s = 0; f_z = reg[A] == 0;
                     setflags_carry(ADD,val,val);                break;
         case(0x8E): val = reg[A] + f_c;
-                    reg[A] = mem[makeaddress(reg[H], reg[L])] + reg[A];
+                    reg[A] = mem[makeaddress(reg[L], reg[H])] + reg[A];
                     f_s = 0; f_z = reg[A] == 0;
-                    setflags_carry(ADD,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    setflags_carry(ADD,val,mem[makeaddress(reg[L], reg[H])]) ;
                     break; //8 cycles
         case(0xCE): val = reg[A] + f_c;
                     val2 = getData();
@@ -339,9 +343,9 @@ void cycle(){
                     f_s = 1; f_z = reg[A] == 0;
                     setflags_carry(SUB,val,val);                break;
         case(0x96): val = reg[A];
-                    reg[A] = reg[A] - mem[makeaddress(reg[H], reg[L])];
+                    reg[A] = reg[A] - mem[makeaddress(reg[L], reg[H])];
                     f_s = 1; f_z = reg[A] == 0;
-                    setflags_carry(SUB,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    setflags_carry(SUB,val,mem[makeaddress(reg[L], reg[H])]) ;
                     break; //8 cycles
         case(0xD6): val = reg[A];
                     val2 = getData();
@@ -379,9 +383,9 @@ void cycle(){
                     f_s = 1; f_z = reg[A] == 0;
                     setflags_carry(SUB,val,val);                break;
         case(0x9E): val = reg[A] - f_c;
-                    reg[A] = reg[A] - mem[makeaddress(reg[H], reg[L])];
+                    reg[A] = reg[A] - mem[makeaddress(reg[L], reg[H])];
                     f_s = 1; f_z = reg[A] == 0;
-                    setflags_carry(SUB,val,mem[makeaddress(reg[H], reg[L])]) ;
+                    setflags_carry(SUB,val,mem[makeaddress(reg[L], reg[H])]) ;
                     break; //8 cycles
         /* undefined op: A<- A - # - CARRY
         case(0xD6): val = reg[A] - f_c;
@@ -415,7 +419,7 @@ void cycle(){
         case(0xA5): val = reg[L] && reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;
-        case(0xA6): val = mem[makeaddress(reg[H], reg[L])] && reg[A];
+        case(0xA6): val = mem[makeaddress(reg[L], reg[H])] && reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 1; f_c = 0;    break;      //8 cycles
         case(0xE6): val = getData() && reg[A];
@@ -447,7 +451,7 @@ void cycle(){
         case(0xB5): val = reg[L] || reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
-        case(0xB6): val = mem[makeaddress(reg[H], reg[L])] || reg[A];
+        case(0xB6): val = mem[makeaddress(reg[L], reg[H])] || reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
         case(0xF6): val = getData() || reg[A];
@@ -479,7 +483,7 @@ void cycle(){
         case(0xAD): val = reg[L] ^ reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;
-        case(0xAE): val = mem[makeaddress(reg[H], reg[L])] ^ reg[A];
+        case(0xAE): val = mem[makeaddress(reg[L], reg[H])] ^ reg[A];
                     reg[A] = val;
                     f_s = 0; f_z = !!val; f_hc = 0; f_c = 0;    break;      //8 cycles
         case(0xEE): val = getData() ^ reg[A];
@@ -509,7 +513,7 @@ void cycle(){
         case(0xBD): f_z = reg[A] == reg[L]; f_s = 1;
                     setflags_carry(SUB,reg[A],reg[L]);
                     f_c = reg[A] < reg[L];                      break;
-        case(0xBE): val = mem[makeaddress(reg[H], reg[L])];
+        case(0xBE): val = mem[makeaddress(reg[L], reg[H])];
                     f_z = reg[A] == val; f_s = 1;
                     setflags_carry(SUB,reg[A],val);
                     f_c = reg[A] < val;                         break;      //8 cycles
@@ -541,10 +545,10 @@ void cycle(){
         case(0x2C): val = reg[L] + 1; f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, reg[L], val);
                     reg[L] = val;                               break;
-        case(0x34): val = mem[makeaddress(reg[H],reg[L])] + 1; 
+        case(0x34): val = mem[makeaddress(reg[L],reg[H])] + 1; 
                     f_z = !!val; f_s = 0;
-                    set_hc_3b(ADD, val, mem[makeaddress(reg[H],reg[L])] );
-                    mem[makeaddress(reg[H], reg[L])] = val;     break;      //12 cycles
+                    set_hc_3b(ADD, val, mem[makeaddress(reg[L],reg[H])] );
+                    mem[makeaddress(reg[L], reg[H])] = val;     break;      //12 cycles
 
         /*DEC n - deccrement register. f_s set. f_c unaffected. 
             f_hc set for if no carry from b4. 4 cycles unless specified*/
@@ -569,10 +573,10 @@ void cycle(){
         case(0x2D): val = reg[L] - 1; f_z = !!val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[L], 1);
                     reg[L] = val;                               break;
-        case(0x35): val = mem[makeaddress(reg[H],reg[L])] - 1; 
+        case(0x35): val = mem[makeaddress(reg[L],reg[H])] - 1; 
                     f_z = !!val; f_s = 0;
-                    set_hc_nb_4b(SUB, mem[makeaddress(reg[H],reg[L])], 1);
-                    mem[makeaddress(reg[H], reg[L])] = val;     break;      //12 cycles
+                    set_hc_nb_4b(SUB, mem[makeaddress(reg[L],reg[H])], 1);
+                    mem[makeaddress(reg[L], reg[H])] = val;     break;      //12 cycles
         
         /*
          * 16 bit ALU
@@ -581,22 +585,22 @@ void cycle(){
         /* add n to HL. 8 cycles.
          * f_z = not affected, f_s reset, f_hc = if carry from bit 11,
          * f_c = if carry from bit 15 */
-        case(0x09): usi = mem[makeaddress(reg[H], reg[L])];
-                    usi2 = mem[makeaddress(reg[B], reg[C])];
+        case(0x09): usi = mem[makeaddress(reg[L], reg[H])];
+                    usi2 = mem[makeaddress(reg[C], reg[B])];
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[L], reg[H])] = usi + usi2; break;
+        case(0x19): usi = mem[makeaddress(reg[L], reg[H])];
+                    usi2 = mem[makeaddress(reg[E], reg[D])];
+                    setflags_carry(ADD, usi, usi2); f_s = 0;
+                    mem[makeaddress(reg[L], reg[H])] = usi + usi2; break;
+        case(0x29): usi = mem[makeaddress(reg[L], reg[H])];
+                    usi2 = mem[makeaddress(reg[L], reg[H])];
                     setflags_carry(ADD, usi, usi2); f_s = 0;
                     mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
-        case(0x19): usi = mem[makeaddress(reg[H], reg[L])];
-                    usi2 = mem[makeaddress(reg[D], reg[E])];
-                    setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
-        case(0x29): usi = mem[makeaddress(reg[H], reg[L])];
-                    usi2 = mem[makeaddress(reg[H], reg[L])];
-                    setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
-        case(0x39): usi = mem[makeaddress(reg[H], reg[L])];
+        case(0x39): usi = mem[makeaddress(reg[L], reg[H])];
                     usi2 = sp;
                     setflags_carry(ADD, usi, usi2); f_s = 0;
-                    mem[makeaddress(reg[H], reg[L])] = usi + usi2; break;
+                    mem[makeaddress(reg[L], reg[H])] = usi + usi2; break;
         /* Add n to sp, n is a 1byte signed immediate.
          * f_z reset, f_s reset, f_hc f_c set  16 cycles. */
         case(0xE8): sval = getData();
@@ -606,14 +610,14 @@ void cycle(){
                     f_z = 0; f_s = 0;
                     sp = usi;                                   break;
         /* Inc nn register. No flags affected. 8 cycles*/
-        case(0x03): mem[makeaddress(reg[B], reg[C])] += 1;      break;
-        case(0x13): mem[makeaddress(reg[D], reg[E])] += 1;      break;
-        case(0x23): mem[makeaddress(reg[H], reg[L])] += 1;      break;
+        case(0x03): mem[makeaddress(reg[C], reg[B])] += 1;      break;
+        case(0x13): mem[makeaddress(reg[E], reg[D])] += 1;      break;
+        case(0x23): mem[makeaddress(reg[L], reg[H])] += 1;      break;
         case(0x33): sp += 1;                                    break;
         /* Dec nn register. No flags affected. 8 cycles*/
-        case(0x0B): mem[makeaddress(reg[B], reg[C])] -= 1;      break;
-        case(0x1B): mem[makeaddress(reg[D], reg[E])] -= 1;      break;
-        case(0x2B): mem[makeaddress(reg[H], reg[L])] -= 1;      break;
+        case(0x0B): mem[makeaddress(reg[C], reg[B])] -= 1;      break;
+        case(0x1B): mem[makeaddress(reg[E], reg[D])] -= 1;      break;
+        case(0x2B): mem[makeaddress(reg[L], reg[H])] -= 1;      break;
         case(0x3B): sp -= 1;                                    break;
         
         /* 
@@ -638,7 +642,7 @@ void cycle(){
                             val2 = (val2 << 3) | (reg[H] & 0xF0);   break;
                         case(0x35): val2 = 0; val2 = val2 | (reg[L] & 0x0F);
                             val2 = (val2 << 3) | (reg[L] & 0xF0);   break;
-                        case(0x36): val = mem[makeaddress(reg[H], reg[L])];
+                        case(0x36): val = mem[makeaddress(reg[L], reg[H])];
                                     val2 = 0; val2 = val2 | (val & 0x0F);
                                     val2 = (val2 << 3) | (val & 0xF0);   break; //16 cycles
                     }
