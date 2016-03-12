@@ -30,7 +30,7 @@ void crash_dump(){
     fprintf(fp, "\n");
 
     for(i = 0; i < MEM_SIZE; i+= 1){
-        fprintf(fp,"Mem[%d]: %5s %u\n", i, " ", mem[0]);
+        fprintf(fp,"Mem[%d]: %5s %u\n", i, " ", mem[i]);
     }
     fclose(fp);
 }

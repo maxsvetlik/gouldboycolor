@@ -48,3 +48,4 @@ void reset();
 void disable_interrupt_on_next();
 void enable_interrupt_on_next();
 void clear_mem();
+void cpu_init();

@@ -765,10 +765,7 @@ void stop(){}
 void disable_interrupt_on_next(){}
 void enable_interrupt_on_next(){}
 
-int main(int argc, char** argv){
+void cpu_init(){
     reset();
-    mem[0x100] = 0x12;  
-    //cycle();
-    crash_dump();
-    return 0;
+    mem[0x100] = 0x12;
 }
