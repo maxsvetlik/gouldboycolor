@@ -26,15 +26,9 @@ unsigned short int getint(){
     if((check = fgetc(stdin)) != '\n')
         ungetc(check,stdin);  
 
-    if (fgets(buf, sizeof(buf), stdin) != NULL){
+    if (fgets(buf, sizeof(buf), stdin) != NULL)
         i = strtol(buf, &p, 10);
     
-       if(DEBUG){
-           if (buf[0] != '\n' && (*p == '\n' || *p == '\0'))
-                printf ("Valid number of %u entered\n", i); 
-            else  printf ("Invalid number entered\n");
-        }
-    }
     return i;
 }
 
@@ -142,6 +136,7 @@ void handle_set_reg(){
             sp = (unsigned) getint();       break;
         case('4'):
             printf("Current PC  :  %u\n", pc);
+            printf("Enter a new value: ");
             pc = (unsigned) getint();       break;
         default:
             printf("Unsupported option.\n");
