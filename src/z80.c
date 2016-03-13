@@ -198,12 +198,12 @@ void cycle(){
         case(0xF9): sp = makeaddress(reg[L], reg[H]); break;
         /*LD HL, SP+n - 12cycles
          * flags affected: Z-reset, N-reset, H-re/set C-re/set */
-        case(0xF8): ;unsigned short int res = sp + getData();
-            reg[H] = res >> 8;
-            reg[L] = (res << 8) >> 8;
+        case(0xF8): ;val = getData();
+            unsigned short int res = mem[sp + val];
+            reg[H] = (res >> 8) & 0xFF;
+            reg[L] = (res & 0xFF);
             f_z = 0; f_s = 0;
-            f_hc = ((sp << 8) >> 8) >= reg[L];
-            f_c = sp >= res;
+            setflags_carry(ADD, sp, val);
             break;
         /*LD (nn),SP - 20 cycles*/
         case(0x08): 
