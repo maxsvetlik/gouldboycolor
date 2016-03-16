@@ -1,5 +1,5 @@
 #define GP_REGS 8
-#define MEM_SIZE 4096
+#define MEM_SIZE 65535
 
 /*
  * Registers:
@@ -49,3 +49,6 @@ void disable_interrupt_on_next();
 void enable_interrupt_on_next();
 void clear_mem();
 void cpu_init();
+unsigned char get_bit(unsigned char reg, unsigned char bit);
+unsigned char set_bit(unsigned char reg, unsigned char bit);
+unsigned char reset_bit(unsigned char reg, unsigned char bit);

@@ -624,31 +624,80 @@ void cycle(){
          * END OF ALU
          * Misc Operations ->
          */
-        /*Swap upper and lower nibbles of n. f_z set if applic., 
-         * f_s, f_hc, f_c reset. 8 cycles unless specified.*/
+
+        //2-byte opcodes
         case(0xCB): val = getData();
-                    switch(val){
-                        case(0x37): val2 = 0; val2 = val2 | (reg[A] & 0x0F);
-                            val2 = (val2 << 3) | (reg[A] & 0xF0);   break;
-                        case(0x30): val2 = 0; val2 = val2 | (reg[B] & 0x0F);
-                            val2 = (val2 << 3) | (reg[B] & 0xF0);   break;
-                        case(0x31): val2 = 0; val2 = val2 | (reg[C] & 0x0F);
-                            val2 = (val2 << 3) | (reg[C] & 0xF0);   break;
-                        case(0x32): val2 = 0; val2 = val2 | (reg[D] & 0x0F);
-                            val2 = (val2 << 3) | (reg[D] & 0xF0);   break;
-                        case(0x33): val2 = 0; val2 = val2 | (reg[E] & 0x0F);
-                            val2 = (val2 << 3) | (reg[E] & 0xF0);   break;
-                        case(0x34): val2 = 0; val2 = val2 | (reg[H] & 0x0F);
-                            val2 = (val2 << 3) | (reg[H] & 0xF0);   break;
-                        case(0x35): val2 = 0; val2 = val2 | (reg[L] & 0x0F);
-                            val2 = (val2 << 3) | (reg[L] & 0xF0);   break;
-                        case(0x36): val = mem[makeaddress(reg[L], reg[H])];
-                                    val2 = 0; val2 = val2 | (val & 0x0F);
-                                    val2 = (val2 << 3) | (val & 0xF0);   break; //16 cycles
-                    }
-                    //potentially unsafe
-                    f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;
-                                                                break;
+                switch(val){
+                    /*Swap upper and lower nibbles of n. f_z set if applic., 
+                    * f_s, f_hc, f_c reset. 8 cycles unless specified.*/
+                    case(0x37): val2 = 0; val2 = val2 | (reg[A] & 0x0F);
+                        val2 = (val2 << 3) | (reg[A] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x30): val2 = 0; val2 = val2 | (reg[B] & 0x0F);
+                        val2 = (val2 << 3) | (reg[B] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x31): val2 = 0; val2 = val2 | (reg[C] & 0x0F);
+                        val2 = (val2 << 3) | (reg[C] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x32): val2 = 0; val2 = val2 | (reg[D] & 0x0F);
+                        val2 = (val2 << 3) | (reg[D] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x33): val2 = 0; val2 = val2 | (reg[E] & 0x0F);
+                        val2 = (val2 << 3) | (reg[E] & 0xF0); 
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x34): val2 = 0; val2 = val2 | (reg[H] & 0x0F);
+                        val2 = (val2 << 3) | (reg[H] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x35): val2 = 0; val2 = val2 | (reg[L] & 0x0F);
+                        val2 = (val2 << 3) | (reg[L] & 0xF0);
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    case(0x36): val = mem[makeaddress(reg[L], reg[H])];
+                        val2 = 0; val2 = val2 | (val & 0x0F);
+                        val2 = (val2 << 3) | (val & 0xF0);   break; //16 cycles
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                    /*BIT ops*/
+                    /*BIT b,r - test bit b in register r. f_z re/set, f_s reset, f_hc = set
+                     * f_c = not affected*/
+                    case(0x47): val2 = getData(); val = get_bit(reg[A], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x40): val2 = getData(); val = get_bit(reg[B], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x41): val2 = getData(); val = get_bit(reg[C], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x42): val2 = getData(); val = get_bit(reg[D], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x43): val2 = getData(); val = get_bit(reg[E], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x44): val2 = getData(); val = get_bit(reg[H], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x45): val2 = getData(); val = get_bit(reg[L], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+                    case(0x46): val2 = getData(); val = get_bit(mem[makeaddress(reg[L], reg[H])], val2);
+                        f_z = !!val; f_s = 0; f_hc = 1;             break;
+
+                    /*SET b,r - set bit b in register r. no flags affected*/
+                    case(0xC7): val2 = getData(); reg[A] = set_bit(reg[A], val2); break;
+                    case(0xC0): val2 = getData(); reg[B] = set_bit(reg[B], val2); break;
+                    case(0xC1): val2 = getData(); reg[C] = set_bit(reg[C], val2); break;
+                    case(0xC2): val2 = getData(); reg[D] = set_bit(reg[D], val2); break;
+                    case(0xC3): val2 = getData(); reg[E] = set_bit(reg[E], val2); break;
+                    case(0xC4): val2 = getData(); reg[H] = set_bit(reg[H], val2); break;
+                    case(0xC5): val2 = getData(); reg[L] = set_bit(reg[L], val2); break;
+                    case(0xC6): val2 = getData(); 
+                        mem[makeaddress(reg[L], reg[H])] = set_bit(mem[makeaddress(reg[L], reg[H])], val2); break;
+                    /*RES b,r - reset bit b in register r. no flags affected*/
+                    case(0x87): val2 = getData(); reg[A] = reset_bit(reg[A], val2); break;
+                    case(0x80): val2 = getData(); reg[B] = reset_bit(reg[B], val2); break;
+                    case(0x81): val2 = getData(); reg[C] = reset_bit(reg[C], val2); break;
+                    case(0x82): val2 = getData(); reg[D] = reset_bit(reg[D], val2); break;
+                    case(0x83): val2 = getData(); reg[E] = reset_bit(reg[E], val2); break;
+                    case(0x84): val2 = getData(); reg[H] = reset_bit(reg[H], val2); break;
+                    case(0x85): val2 = getData(); reg[L] = reset_bit(reg[L], val2); break;
+                    case(0x86): val2 = getData(); 
+                        mem[makeaddress(reg[L], reg[H])]= reset_bit(mem[makeaddress(reg[L], reg[H])], val2); break;
+
+                }
+                    
         /*DAA - Decimal adjust register A. */
 
         /*Complement Register A. set f_s, f_hc. others not affected. 4 cycles*/
@@ -742,6 +791,22 @@ unsigned char getData(){
     char res = mem[pc];
     pc += 1;
     return res;
+}
+/*
+ * returns the bit`th bit in reg
+ */
+unsigned char get_bit(unsigned char reg, unsigned char bit){
+    return  (reg << (8 - bit)) >> 7;
+}
+
+//sets the bit`th bit in reg, and returns
+unsigned char set_bit(unsigned char reg, unsigned char bit){
+    return reg | (0x01 << bit);
+}
+
+//returns with the the bit`th bit in reg reset
+unsigned char reset_bit(unsigned char reg, unsigned char bit){;
+    return reg ^ (0x01 << bit);
 }
 
 /* Creates a 16-bit address from given high and low bit registers */
