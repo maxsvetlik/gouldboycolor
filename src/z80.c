@@ -742,13 +742,53 @@ void cycle(){
         /* JR n - add n to current address and jump to it */
         case(0x18): val1 = getData(); pc = pc + val1;               break;
         /* JR cc,n - conditionall add and jump. Same conditions as 0xC3. 8 cycles*/
-        case(0x20): val1 = getData(); if(!f_z) pc = pc + val1; break;
-        case(0x28): val1 = getData(); if(f_z) pc = pc + val1; break;
-        case(0x30): val1 = getData(); if(!f_c) pc = pc + val1; break;
-        case(0x38): val1 = getData(); if(f_z) pc = pc + val1; break;
+        case(0x20): val1 = getData(); if(!f_z) pc = pc + val1;      break;
+        case(0x28): val1 = getData(); if(f_z) pc = pc + val1;       break;
+        case(0x30): val1 = getData(); if(!f_c) pc = pc + val1;      break;
+        case(0x38): val1 = getData(); if(f_z) pc = pc + val1;       break;
         
-        default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
-                    crash_dump();                                   break;
+        /*CALLs*/
+        /*CALL nn */
+        case(0xCD): val1 = getData(); val2 = getData();
+        mem[sp] = pc; sp-=1; pc = makeaddress(val2, val1);          break;
+        /*CALL cc,nn - conditional call 12 cycles*/
+        case(0xC4): val1 = getData(); val2 = getData();
+            if(!f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+        case(0xCC): val1 = getData(); val2 = getData();
+            if(f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);}  break;
+        case(0xD4): val1 = getData(); val2 = getData();
+            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+        case(0xDC): val1 = getData(); val2 = getData();
+            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+        /*RESTARTS - RST n: push address on to stack, jump to 0x0000 + n*/
+        case(0xC7): mem[sp] = pc; sp -= 1; pc = 0x00;                        break;
+        case(0xCF): mem[sp] = pc; sp -= 1; pc = 0x08;                        break;       
+        case(0xD7): mem[sp] = pc; sp -= 1; pc = 0x10;                        break;
+        case(0xDF): mem[sp] = pc; sp -= 1; pc = 0x18;                        break;
+        case(0xE7): mem[sp] = pc; sp -= 1; pc = 0x20;                        break;
+        case(0xEF): mem[sp] = pc; sp -= 1; pc = 0x28;                        break;
+        case(0xF7): mem[sp] = pc; sp -= 1; pc = 0x30;                        break;
+        case(0xFF): mem[sp] = pc; sp -= 1; pc = 0x38;                        break;
+        /*RETURNS*/
+        /*Ret: pop two bytes from stack and jump to that address*/
+        case(0xC9): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                    pc = makeaddress(val2, val1);                           break;
+        /*RET cc - conditional return.*/ 
+        case(0xC0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                if(!f_z) pc = makeaddress(val2, val1);                      break;
+        case(0xC8): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                if(f_z) pc = makeaddress(val2, val1);                       break;
+        case(0xD0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                if(!f_c) pc = makeaddress(val2, val1);                      break;
+        case(0xD8): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                if(f_c) pc = makeaddress(val2, val1);                       break;
+        /*RETI - return and enable interrupts*/
+        case(0xD9): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+                    pc = makeaddress(val2, val1);
+                    enable_interrupts();                                    break;
+
+       default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
+                 crash_dump();                                   break;
     }
 }
 
@@ -857,7 +897,7 @@ void halt(){}
 void stop(){}
 void disable_interrupt_on_next(){}
 void enable_interrupt_on_next(){}
-
+void enable_interrupts(){}
 void cpu_init(){
     reset();
     mem[0x100] = 0x12;

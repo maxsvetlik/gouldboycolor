@@ -47,6 +47,7 @@ void stop();
 void reset();
 void disable_interrupt_on_next();
 void enable_interrupt_on_next();
+void enable_interrupts();
 void clear_mem();
 void cpu_init();
 unsigned char get_bit(unsigned char reg, unsigned char bit);
