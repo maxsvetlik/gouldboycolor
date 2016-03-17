@@ -30,6 +30,7 @@ unsigned char       f_c;
 
 /* These are TEMPORARY vars not part of the CPU state */
 unsigned char       val;
+unsigned char       val1;
 unsigned char       val2;
 unsigned short int  usi;
 unsigned short int  usi2;
@@ -722,6 +723,29 @@ void cycle(){
         /* Enable interrupts after the instruction AFTER this one 
          * is executed. 4 cycles*/
         case(0xFB): enable_interrupt_on_next();                     break;
+
+
+        /* JUMPS */
+        /*JP nn, where nn is a twobyte immediate (LS byte first). 12 cycles*/
+        case(0xC3): val1 = getData(); val2 = getData(); pc = makeaddress(val2, val1); break;
+        /*JP cc,nn - conditional jump under:
+        *  NZ: Jump if f_z is reset
+        *  Z : Jump if f_z is set
+        *  NC: Jump if f_c is reset
+        *  C:  Jump if f_c is set */
+        case(0xC2): val1 = getData(); val2 = getData(); if(!f_z) pc = makeaddress(val2, val1); break;
+        case(0xCA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val2, val1); break;
+        case(0xD2): val1 = getData(); val2 = getData(); if(!f_c) pc = makeaddress(val2, val1); break;
+        case(0xDA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val2, val1); break;
+        /* JP (HL) 4 cycles*/
+        case(0xE9): pc = makeaddress(reg[L], reg[H]);               break;
+        /* JR n - add n to current address and jump to it */
+        case(0x18): val1 = getData(); pc = pc + val1;               break;
+        /* JR cc,n - conditionall add and jump. Same conditions as 0xC3. 8 cycles*/
+        case(0x20): val1 = getData(); if(!f_z) pc = pc + val1; break;
+        case(0x28): val1 = getData(); if(f_z) pc = pc + val1; break;
+        case(0x30): val1 = getData(); if(!f_c) pc = pc + val1; break;
+        case(0x38): val1 = getData(); if(f_z) pc = pc + val1; break;
         
         default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
                     crash_dump();                                   break;
