@@ -16,6 +16,7 @@
 
 #include "z80.h"
 #include "error.h"
+#include "interrupt.h"
 
 #define DEBUG 1
 #define DB_OPCODE 1
@@ -36,6 +37,8 @@ unsigned short int  usi;
 unsigned short int  usi2;
 char                sval;
 
+char                disable_next;
+char                enable_next;
 
 void cycle(){
     unsigned char inst = mem[pc];
@@ -717,12 +720,12 @@ void cycle(){
         /*stop. Halts CPU and screen until button pressed. 4 cycles.
          * note: 2byte instruction 0x1000 that I'm shortening to 0x10*/
         case(0x10): stop();                                         break;
-        /* Disable interrupts after the instruction AFTER this one 
+        /* Disable interrupts on the instruction AFTER this one 
          * is executed. 4 cycles*/
-        case(0xF3): disable_interrupt_on_next();                    break;
-        /* Enable interrupts after the instruction AFTER this one 
+        case(0xF3): disable_next = 1;                               break;
+        /* Enable interrupts on the instruction AFTER this one 
          * is executed. 4 cycles*/
-        case(0xFB): enable_interrupt_on_next();                     break;
+        case(0xFB): enable_next = 1;                                break;
 
 
         /* JUMPS */
@@ -790,6 +793,21 @@ void cycle(){
        default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
                  crash_dump();                                   break;
     }
+    if(enable_next == 1){
+        enable_next = 2;
+    }
+    else if(enable_next == 2){
+        enable_next = 0;
+        enable_interrupts();
+    }
+    if(disable_next == 1)
+        disable_next = 2;
+    else if(disable_next == 2){
+        disable_next = 0;
+        disable_interrupts();
+    }
+    if(f_ime)
+        interrupt_handler();
 }
 
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly
@@ -895,9 +913,6 @@ void reset(){
 }
 void halt(){}
 void stop(){}
-void disable_interrupt_on_next(){}
-void enable_interrupt_on_next(){}
-void enable_interrupts(){}
 void cpu_init(){
     reset();
     mem[0x100] = 0x12;
