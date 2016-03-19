@@ -26,7 +26,7 @@
     corresponds to the priority defined above:
     VBLANK, LCDSTAT, TIMER, SERIAL, JOYPAD
 */
-static const short int interrupt_table[] = {0x0040, 0x0048, 0x0050, 0x0058};
+static const short int interrupt_table[] = {0x0040, 0x0048, 0x0050, 0x0058,0x0060};
 unsigned char f_ime;    //interrupt master enable flag
 
 void enable_interrupts();
