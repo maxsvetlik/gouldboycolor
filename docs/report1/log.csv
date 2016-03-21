@@ -1,0 +1,30 @@
+hash,author,commitdate,message
+fe58fab,Maxwell Svetlik,2 days ago,added needed register definitions for timers and video processing. adding an interrupt file that was missed earlier?
+580fc14,Maxwell Svetlik,3 days ago,added basic interrupt support.
+c4ff70e,Maxwell Svetlik,4 days ago,added retuns calls etc
+29a62a5,Maxwell Svetlik,4 days ago,added jumps.
+2aa678d,Maxwell Svetlik,4 days ago,added bit ops
+c1188ec,Maxwell Svetlik,8 days ago,formatting.
+b87f9f8,Maxwell Svetlik,8 days ago,fixes for the ld HL sp+n op  0xf8.
+40af10f,Maxwell Svetlik,8 days ago,added the needed feature of running a clock cycle.
+5b99775,Maxwell Svetlik,8 days ago,resolved a bug involving the order of paramters to the makeaddress function.
+21c3e4b,Maxwell Svetlik,8 days ago,added an interactive face to cpu for verifcation and debugging purposes.
+4d001b0,Maxwell Svetlik,9 days ago,added in memory dump handler
+3bb5c06,Maxwell Svetlik,9 days ago,added misc op codes. skipped one for decimial representation
+dbcddb0,Maxwell Svetlik,9 days ago,added remainder 16 bit ALU and fixed previous break issue
+4c76136,Maxwell Svetlik,9 days ago,added 16bit add
+e7747d6,Maxwell Svetlik,12 days ago,added decrement. fixed two small logic bugs
+3723f77,Maxwell Svetlik,12 days ago,added increment and compare ops
+659ce1d,Maxwell Svetlik,2 weeks ago,added all logical XOR
+731664e,Maxwell Svetlik,2 weeks ago,added all logical or and ops
+433d194,Maxwell Svetlik,2 weeks ago,added some ALU ops. wrote function to set flags for some alu operations
+57e60bc,Maxwell Svetlik,3 weeks ago,added cpu_spec sheet for quick ref
+8dff27a,Maxwell Svetlik,3 weeks ago,finished 16-bit loads. added in flags.
+74e4eb0,Maxwell Svetlik,3 weeks ago,another bug fix for the makeaddress little endian change
+e0481ec,Maxwell Svetlik,3 weeks ago,added a few 16bit ops but most importantly fixed the makeaddress function to be little endian
+c994a8a,maxsvetlik,3 weeks ago,Update README.md
+0763484,Maxwell Svetlik,3 weeks ago,updates
+3b3981e,Maxwell Svetlik,3 weeks ago,added remainder of the 8-bit load ops. made all chars unsigned
+2d98637,Maxwell Svetlik,3 weeks ago,init commit. added opcodes up to page 67 in the GBM
+e98109a,Maxwell Svetlik,4 weeks ago,added and finished proposal
+a38d68f,maxsvetlik,4 weeks ago,Initial commit
