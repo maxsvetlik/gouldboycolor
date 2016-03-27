@@ -12,7 +12,8 @@
  *
  */
 
-#include<stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "z80.h"
 #include "error.h"
@@ -662,21 +663,21 @@ void cycle(){
                     /*BIT ops*/
                     /*BIT b,r - test bit b in register r. f_z re/set, f_s reset, f_hc = set
                      * f_c = not affected*/
-                    case(0x47): val2 = getData(); val = get_bit(reg[A], val2);
+                    case(0x47): val = get_bit(reg[A], 7);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x40): val2 = getData(); val = get_bit(reg[B], val2);
+                    case(0x40): val = get_bit(reg[B], 0);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x41): val2 = getData(); val = get_bit(reg[C], val2);
+                    case(0x41): val = get_bit(reg[C], 1);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x42): val2 = getData(); val = get_bit(reg[D], val2);
+                    case(0x42): val = get_bit(reg[D], 2);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x43): val2 = getData(); val = get_bit(reg[E], val2);
+                    case(0x43): val = get_bit(reg[E], 3);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x44): val2 = getData(); val = get_bit(reg[H], val2);
+                    case(0x44): val = get_bit(reg[H], 4);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x45): val2 = getData(); val = get_bit(reg[L], val2);
+                    case(0x45): val = get_bit(reg[L], 5);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
-                    case(0x46): val2 = getData(); val = get_bit(mem[makeaddress(reg[L], reg[H])], val2);
+                    case(0x46): val = get_bit(mem[makeaddress(reg[L], reg[H])], 6);
                         f_z = !!val; f_s = 0; f_hc = 1;             break;
 
                     /*SET b,r - set bit b in register r. no flags affected*/
@@ -908,7 +909,29 @@ void clear_mem(){
 //initializes the state as the gameboy expects
 void reset(){
     clear_mem();
-    pc = 0x100; //beginning of the bootup rom sequence
+    //load the boot ROM into mem
+    FILE *fp;
+    char *mode = "r";
+    char inputFilename[] = "DMG_ROM.bin";
+    unsigned char hex[256] = "";
+    fp = fopen(inputFilename, mode);
+    int i;
+    size_t bytes = 0;
+
+    if(fp == NULL) {
+        fprintf(stderr, "ERROR: Cannot read startup ROM. Bootstrap failed...\n");
+        exit(1);
+    }
+    
+    while( ( bytes = fread ( &hex, 1, 256, fp)) > 0) {
+        for(i = 0; i < bytes; i++) {
+            mem[i] = hex[i];
+            printf ( "setting in mem[%d] %x\n", i, mem[i]);
+        }
+    }
+    fclose ( fp);
+    //execute loaded ROM
+    pc = 0x00;
     sp = 0xFFFE;
 }
 void halt(){}
