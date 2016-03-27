@@ -41,7 +41,7 @@ void setflags_carry16(char op, unsigned short int val1, unsigned short int val2)
 void set_hc_3b(char op, unsigned char val1, unsigned char val2);
 void set_hc_nb_4b(char op, unsigned char val1, unsigned char val2);
 unsigned char getData();
-unsigned short int makeaddress(char high, char low);
+unsigned short int makeaddress(unsigned char high, unsigned char low);
 void halt();
 void stop();
 void reset();

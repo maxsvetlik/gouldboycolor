@@ -893,7 +893,7 @@ unsigned char reset_bit(unsigned char reg, unsigned char bit){;
 }
 
 /* Creates a 16-bit address from given high and low bit registers */
-unsigned short int makeaddress(char low, char high){
+unsigned short int makeaddress(unsigned char high, unsigned char low){
     unsigned short int result = high;
     result = result << 8;
     result += low;
