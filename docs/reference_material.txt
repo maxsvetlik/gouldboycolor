@@ -1,6 +1,12 @@
 Gameboy specific:
     full manual         : http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
     opcodes (chart)     : http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html
+    memory_map overvw   : http://gameboy.mongenel.com/dmg/asmmemmap.html
 
 Zilog Z80:
     full opcode manual  : http://www.phy.davidson.edu/FacHome/dmb/py310/Z80.Instruction%20set.pdf
+
+
+SDL resources:
+    Getting and setting pixels: http://sdl.beuc.net/sdl.wiki/Pixel_Access
+    RGB Surfaces        : https://wiki.libsdl.org/SDL_CreateRGBSurface
