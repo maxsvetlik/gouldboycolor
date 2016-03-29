@@ -47,7 +47,7 @@
 #define BLACK   3
 #define BGP     0xFF47  //BG pallete data, rw, assigns gray shades
 #define OBP0    0xFF48  //Object palette 0. same as BGP BUT lower two bits not used since 00 -> transparent
-#define 0BP1    0xFF49  //Object palette 1. read above about transparency.
+#define OBP1    0xFF49  //Object palette 1. read above about transparency.
 
     /*Color palettes*/
 
