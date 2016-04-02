@@ -102,6 +102,7 @@ void draw_tile(unsigned char mem[]){
     int x = 0; int y = 0;
     for(i = 0; i < 1024; i+=1){
         unsigned char tile_num = 16 * mem[start+i]; //each tile identifier corresponds to 16 bytes
+        
         for(k = 0; k < 8; k+=2){
             unsigned char lsb = mem[tile_base+tile_num];
             unsigned char msb = mem[tile_base+tile_num+1];
@@ -112,6 +113,7 @@ void draw_tile(unsigned char mem[]){
             }
             draw_vect[0] = (msb & 0x1) << 1 + (lsb & 0x1);
             draw_vect[1] = (msb & 0x10) + ((lsb & 0x10) >> 1);
+            
             draw_line(draw_vect, i%32, y+k);
         }
         if(i % 32 == 0 && i !=0)

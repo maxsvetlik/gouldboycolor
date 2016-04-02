@@ -42,7 +42,10 @@ char                sval;
 char                disable_next;
 char                enable_next;
 
-void cycle(){
+/* Returns -1 in error, 0 for smooth sailing
+ *
+ */
+int cycle(){
     unsigned char inst = mem[pc];
     pc += 1;
 
@@ -50,7 +53,7 @@ void cycle(){
     
     if(DEBUG && DB_OPCODE){
         printf("Instruction: %x\n",inst);
-        printf("Op code: %x\n", op);
+        //printf("Op code: %x\n", op);
     }
     //the "big switch"
     switch(op) {
@@ -174,16 +177,16 @@ void cycle(){
         
         /*LD A,(HLD) - HL dec*/
         case(0x3A): reg[A] = mem[makeaddress(reg[L], reg[H])];  //8 cycles
-                    reg[L] -= 1; break;
+                    reg[H] -= 1; break;
         /*LD (HLD),A - HL dec*/
         case(0x32): mem[makeaddress(reg[L], reg[H])] = reg[A];
-                    reg[L] -= 1; break;                         //8 cycles
+                    reg[H] -= 1; break;                         //8 cycles
         /*LD A,(HLD) - HL inc */
         case(0x2A): reg[A] = mem[makeaddress(reg[L], reg[H])];
-                    reg[L] += 1; break;                         //8 cycles
+                    reg[H] += 1; break;                         //8 cycles
         /*LD (HLD),A - HL inc */
         case(0x22): mem[makeaddress(reg[L], reg[H])] = reg[A];
-                    reg[L] += 1; break;                         //8 cycles
+                    reg[H] += 1; break;                         //8 cycles
         /*LD (n),A where 0xFF00 is the base */
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
         /*LD A,(n) where 0xFF00 is the base */
@@ -633,6 +636,7 @@ void cycle(){
 
         //2-byte opcodes
         case(0xCB): val = getData();
+                printf("Sub-Op code: %x\n", val);
                 switch(val){
                     /*Swap upper and lower nibbles of n. f_z set if applic., 
                     * f_s, f_hc, f_c reset. 8 cycles unless specified.*/
@@ -821,7 +825,8 @@ void cycle(){
                     case(0x86): val2 = getData(); 
                         mem[makeaddress(reg[L], reg[H])]= reset_bit(mem[makeaddress(reg[L], reg[H])], val2); break;
                     default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, pc);
-                        crash_dump();                                   break;
+                        crash_dump();
+                        return -1;                                 break;
                 }
                     
         /*DAA - Decimal adjust register A. */
@@ -913,7 +918,8 @@ void cycle(){
                     enable_interrupts();                                    break;
 
        default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
-                 crash_dump();                                   break;
+                 crash_dump(); 
+                 return -1;                                break;
     }
     if(enable_next == 1){
         enable_next = 2;
@@ -930,7 +936,8 @@ void cycle(){
     }
     if(f_ime)
         interrupt_handler();
-    draw_tile(mem);
+    //draw_tile(mem);
+    return 0;
 }
 
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly
@@ -1002,7 +1009,6 @@ unsigned char getData(){
  */
 unsigned char get_bit(unsigned char reg, unsigned char bit){
     unsigned char res = (reg << (7 - bit)) >> 7;
-    printf("GOT BIT: %x\n", res);
     return res;
 }
 

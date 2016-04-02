@@ -8,6 +8,7 @@
  * However, later on, written test cases may be used.
  */
 
+#include "visualization.h"
 #include "z80.h"
 #include "cpu_test.h"
 
@@ -74,7 +75,7 @@ void print_state(){
     printf("f_hc: %u\n", f_hc);
     printf("f_c: %u\n", f_c);
     for(i = 0; i < GP_REGS; i+=1)
-        printf("Reg[%d]: %5s %d\n", i, " ", reg[i]);
+        printf("Reg[%d]: %5s %x\n", i, " ", reg[i]);
     printf("***END STATE***\n\n");
 }
 void print_global_menu(){
@@ -151,7 +152,9 @@ void bulkcycle(){
     printf("\n");
     int i;
     for(i = 0; i < result; i+=1)
-        cycle();
+        if(cycle())
+            exit(-1);
+    draw_tile(mem);
 
 }
 void interactive_session(){
@@ -174,7 +177,7 @@ void interactive_session(){
                 print_mem(val1, val2);
                 break;
             case('8'): bulkcycle();         break;
-            case('9'): cycle();             break;
+            case('9'): if(cycle()) exit(-1);             break;
             default: printf("Unsupported command, please try again.\n"); 
         }
     }

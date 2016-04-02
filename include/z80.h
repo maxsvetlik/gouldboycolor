@@ -38,7 +38,7 @@ extern unsigned char       f_s;
 extern unsigned char       f_hc;
 extern unsigned char       f_c;
 
-void cycle();
+int cycle();
 void setflags_carry(char op, unsigned char val1, unsigned char val2);
 void setflags_carry16(char op, unsigned short int val1, unsigned short int val2);
 void set_hc_3b(char op, unsigned char val1, unsigned char val2);
