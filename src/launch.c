@@ -6,11 +6,13 @@
 
 #include "cpu_test.h"
 #include "error.h"
+#include "visualization.h"
 #include "z80.h"
 
 int main(int argc, char** argv){
     
     cpu_init();
+    init_visualization();
     interactive_session();
     return 0;
 

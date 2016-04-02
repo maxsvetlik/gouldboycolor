@@ -1,3 +1,6 @@
+#ifndef Z80_H_INCLUDED
+#define Z80_H_INCLUDED
+
 #define GP_REGS 8
 #define MEM_SIZE 65535
 
@@ -50,3 +53,5 @@ void cpu_init();
 unsigned char get_bit(unsigned char reg, unsigned char bit);
 unsigned char set_bit(unsigned char reg, unsigned char bit);
 unsigned char reset_bit(unsigned char reg, unsigned char bit);
+
+#endif

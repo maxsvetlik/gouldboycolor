@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "visualization.h" //this must be before z80.h
 #include "z80.h"
 #include "error.h"
 #include "interrupt.h"
@@ -929,6 +930,7 @@ void cycle(){
     }
     if(f_ime)
         interrupt_handler();
+    draw_tile(mem);
 }
 
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly

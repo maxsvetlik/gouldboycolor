@@ -54,5 +54,7 @@
 /*DMA TRANSFERS*/
 #define DMA     0xFF46
 
-
+// Some basic constants for tile processing and the like
+#define BYTESPERTILE 16
+#define LINESPERTILE 8  //8 lines, 2 bytes each specifying least and most significant pallete bits
 
