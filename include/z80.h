@@ -30,7 +30,7 @@
 #define SUB 2
 
 extern unsigned char       mem[];
-extern char                reg[];
+extern unsigned char       reg[];
 extern unsigned short int  pc;
 extern unsigned short int  sp;
 extern unsigned char       f_z;
@@ -39,6 +39,7 @@ extern unsigned char       f_hc;
 extern unsigned char       f_c;
 
 int cycle();
+unsigned char rotate_left_tc(unsigned int reg_num);
 void setflags_carry(char op, unsigned char val1, unsigned char val2);
 void setflags_carry16(char op, unsigned short int val1, unsigned short int val2);
 void set_hc_3b(char op, unsigned char val1, unsigned char val2);

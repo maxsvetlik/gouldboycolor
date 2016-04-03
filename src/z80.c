@@ -23,7 +23,7 @@
 #define DEBUG 1
 #define DB_OPCODE 1
 unsigned char mem[MEM_SIZE];
-char reg[GP_REGS];
+unsigned char reg[GP_REGS];
 unsigned short int  pc;
 unsigned short int  sp;
 unsigned char       f_z;
@@ -152,7 +152,9 @@ int cycle(){
         case(0x36):
             mem[makeaddress(reg[L], reg[H])] = getData();       //12 cycles
             break;
-    
+        /* LD A, n 4 cycles unless specified. Put value n into A*/
+        case(0x0A): reg[A] = makeaddress(reg[C], reg[B]); break; //8 cycles
+        case(0x1A): reg[A] = makeaddress(reg[E], reg[D]); break; //8 cycles
         /* LD n,A
          * 4 cycles, unless specified */
         case(0x47): reg[B] = reg[A]; break;
@@ -618,10 +620,19 @@ int cycle(){
                     f_c = ((usi & 0x8000) >> 15) ^ ((sp & 0x8000) >> 15);
                     f_z = 0; f_s = 0;
                     sp = usi;                                   break;
-        /* Inc nn register. No flags affected. 8 cycles*/
-        case(0x03): mem[makeaddress(reg[C], reg[B])] += 1;      break;
-        case(0x13): mem[makeaddress(reg[E], reg[D])] += 1;      break;
-        case(0x23): mem[makeaddress(reg[L], reg[H])] += 1;      break;
+        /* Inc nn register. No flags affected. 8 cycles.*/
+        case(0x03): usi =makeaddress(reg[B], reg[C]);
+                    usi += 1;
+                    reg[B] = (usi >> 8) & 0xff;
+                    reg[C] = usi & 0xff;                        break;
+        case(0x13): usi = makeaddress(reg[D], reg[E]); 
+                    usi += 1;
+                    reg[D] = (usi >> 8) & 0xff;
+                    reg[E] = usi & 0xff;                        break;
+        case(0x23): usi = makeaddress(reg[H], reg[L]);
+                    usi += 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff;                        break;
         case(0x33): sp += 1;                                    break;
         /* Dec nn register. No flags affected. 8 cycles*/
         case(0x0B): mem[makeaddress(reg[C], reg[B])] -= 1;      break;
@@ -824,6 +835,18 @@ int cycle(){
                     case(0x85): val2 = getData(); reg[L] = reset_bit(reg[L], val2); break;
                     case(0x86): val2 = getData(); 
                         mem[makeaddress(reg[L], reg[H])]= reset_bit(mem[makeaddress(reg[L], reg[H])], val2); break;
+                    /*RL n - Rotate r left n through carry flag. */
+                    case(0x17): reg[A] = rotate_left_tc(A); f_z = 0; f_hc = 0; f_z = !!reg[A];               break;
+                    case(0x10): reg[B] = rotate_left_tc(B); f_z = 0; f_hc = 0; f_z = !!reg[B];               break;
+                    case(0x11): reg[C] = rotate_left_tc(C); f_z = 0; f_hc = 0; f_z = !!reg[C];               break;
+                    case(0x12): reg[D] = rotate_left_tc(D); f_z = 0; f_hc = 0; f_z = !!reg[D];               break;
+                    case(0x13): reg[E] = rotate_left_tc(E); f_z = 0; f_hc = 0; f_z = !!reg[E];               break;
+                    case(0x14): reg[H] = rotate_left_tc(H); f_z = 0; f_hc = 0; f_z = !!reg[H];               break;
+                    case(0x15): reg[L] = rotate_left_tc(L); f_z = 0; f_hc = 0; f_z = !!reg[L];               break;
+                    case(0x16): usi = mem[makeaddress(reg[L], reg[H])] << 1; usi = usi | f_c;
+                                f_c = !!(usi & 0x100000000); mem[makeaddress(reg[L],reg[H])] = usi & 0xFF;
+                                f_z = 0; f_hc = 0; f_z = !!mem[makeaddress(reg[L], reg[H])];               break;
+
                     default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, pc);
                         crash_dump();
                         return -1;                                 break;
@@ -880,7 +903,11 @@ int cycle(){
         /*CALLs*/
         /*CALL nn */
         case(0xCD): val1 = getData(); val2 = getData();
-        mem[sp] = pc; sp-=1; pc = makeaddress(val2, val1);          break;
+            mem[sp] = (unsigned char) (pc & 0xff00); sp -= 1;
+            printf("Pushed: %x\n", mem[sp+1]);
+            mem[sp] = (unsigned char) (pc & 0x00ff); sp -= 1;
+            printf("Pushed: %x\n", mem[sp+1]);
+            pc = makeaddress(val2, val1);                           break;
         /*CALL cc,nn - conditional call 12 cycles*/
         case(0xC4): val1 = getData(); val2 = getData();
             if(!f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
@@ -901,7 +928,9 @@ int cycle(){
         case(0xFF): mem[sp] = pc; sp -= 1; pc = 0x38;                        break;
         /*RETURNS*/
         /*Ret: pop two bytes from stack and jump to that address*/
-        case(0xC9): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
+        case(0xC9): sp += 1;
+                    val1 = mem[sp]; sp += 1; val2 = mem[sp];
+                    printf("Returning- lsb %x msb %x\n", val2, val1);
                     pc = makeaddress(val2, val1);                           break;
         /*RET cc - conditional return.*/ 
         case(0xC0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
@@ -916,8 +945,12 @@ int cycle(){
         case(0xD9): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
                     pc = makeaddress(val2, val1);
                     enable_interrupts();                                    break;
-
-       default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, sp);
+        /*RLA - Rotate A left through carry flag*/
+        case(0x17): usi = reg[A] << 1; 
+                    usi = usi | f_c; 
+                    f_c = !!(usi & 0x100000000); reg[A] = usi & 0xFF;
+                    f_z = !!reg[A]; f_s = 0; f_hc = 0; break;
+        default: fprintf(stderr, "Undefined opcode. %x at %u.\n Halting. \n", op, sp);
                  crash_dump(); 
                  return -1;                                break;
     }
@@ -940,6 +973,18 @@ int cycle(){
     return 0;
 }
 
+/* Rotates the register given by reg_num through the carry flag
+ * Sets the carry flag appropriately.
+ * Returns with the new register value
+ */
+unsigned char rotate_left_tc(unsigned int reg_num){
+    unsigned int usi;
+    unsigned char reg_val = reg[reg_num];
+    usi = reg_val << 1; 
+    usi = usi | f_c; 
+    f_c = !!(usi & 0x100000000); 
+    return usi & 0xFF;
+}
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly
  * Note: This is an 8bit function*/
 void setflags_carry(char op, unsigned char x, unsigned char y){

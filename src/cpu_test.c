@@ -60,7 +60,7 @@ char get_menu_input(){
 void print_mem(int base_addr, int num_bytes){
     int i;
     for(i = 0; i < num_bytes; i+=1){
-        printf("Mem[%d] : %5s %u\n", i+base_addr, " ", mem[i+base_addr]);
+        printf("Mem[%x] : %5s %x\n", i+base_addr, " ", mem[i+base_addr]);
     }
 }
 
@@ -68,14 +68,14 @@ void print_mem(int base_addr, int num_bytes){
 void print_state(){
     int i;
     printf("***START STATE***\n");
-    printf("PC: %u\n", pc);
-    printf("sp: %u\n", sp);
-    printf("f_z: %u\n", f_z);
-    printf("f_s: %u\n", f_s);
-    printf("f_hc: %u\n", f_hc);
-    printf("f_c: %u\n", f_c);
+    printf("PC: %x\n", pc);
+    printf("sp: %x\n", sp);
+    printf("f_z: %x\n", f_z);
+    printf("f_s: %x\n", f_s);
+    printf("f_hc: %x\n", f_hc);
+    printf("f_c: %x\n", f_c);
     for(i = 0; i < GP_REGS; i+=1)
-        printf("Reg[%d]: %5s %x\n", i, " ", reg[i]);
+        printf("Reg[%x]: %5s %x\n", i, " ", reg[i]);
     printf("***END STATE***\n\n");
 }
 void print_global_menu(){
@@ -107,7 +107,7 @@ void handle_set_mem(){
         if(base_addr > MEM_SIZE){
             printf("ERROR: Memory address outside of possible range.\n");
         } else{
-            printf("Old value for mem[%u]: %u or %x\n", base_addr, mem[base_addr], mem[base_addr]);
+            printf("Old value for mem[%x]: %x or %x\n", base_addr, mem[base_addr], mem[base_addr]);
             printf("New value: ");
             mem[base_addr] = get_state_hex();
             printf("Enter (c) to continue or (q) to quit: ");
@@ -126,18 +126,18 @@ void handle_set_reg(){
         case('0'):                          break;
         case('1'):
             for(i = 0; i < GP_REGS; i++){
-                printf("Current val for Reg[%d]  :  %d\n", i, reg[i]);
+                printf("Current val for Reg[%x]  :  %x\n", i, reg[i]);
                 printf("Enter new value: ");
                 reg[i] = (get_state_input() - '0');
             }                               break;
         case('2'):
             printf("Not implemented\n.");   break;
         case('3'): 
-            printf("Current SP  :  %u\n", sp);
+            printf("Current SP  :  %x\n", sp);
             printf("Enter new value: ");
             sp = (unsigned) getint();       break;
         case('4'):
-            printf("Current PC  :  %u\n", pc);
+            printf("Current PC  :  %x\n", pc);
             printf("Enter a new value: ");
             pc = (unsigned) getint();       break;
         default:
@@ -151,11 +151,12 @@ void bulkcycle(){
          result = getint();
     printf("\n");
     int i;
-    for(i = 0; i < result; i+=1)
+    for(i = 0; i < result; i+=1){
         if(cycle())
             exit(-1);
-    draw_tile(mem);
-
+        if(!(i % 10))
+            draw_tile(mem);
+    }
 }
 void interactive_session(){
     char input;

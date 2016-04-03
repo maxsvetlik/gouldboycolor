@@ -25,7 +25,7 @@ SDL_Surface* surface;
 SDL_Window* window;
 
 void initilize_colors(SDL_Surface *surface){
-    trans = SDL_MapRGBA(surface->format, 0,0,0,0); 
+    trans = SDL_MapRGBA(surface->format, 255,255,255,0xFF); 
     lgray = SDL_MapRGBA(surface->format, 211, 211, 211, 0xFF);
     gray = SDL_MapRGBA(surface->format, 128, 128, 128, 0xFF);
     dgray = SDL_MapRGBA(surface->format, 105, 105, 105, 0xFF);
@@ -81,8 +81,19 @@ void init_visualization(){
 void draw_line(int line[], int x, int y){
     Uint32 *pixels = (Uint32 *)surface->pixels;
     int i;
+    Uint32 color;
+    int pallet_col;
     for(i = 0; i < 8; i+=1){
-        pixels[(y * surface->w) + x + i] = line[i];
+        pallet_col = line[i];
+        /*if(pallet_col  == LGRAY)
+            color = lgray;
+        else if(pallet_col  == DGRAY)
+            color = gray;
+        else if(pallet_col == BLACK)
+            color = dgray;
+        else if(pallet_col == WHITE)
+            color = trans;*/
+        pixels[(y * surface->w) + x + i] = color;
     }
     SDL_UpdateWindowSurface( window );    
 }
@@ -102,8 +113,9 @@ void draw_tile(unsigned char mem[]){
     int x = 0; int y = 0;
     for(i = 0; i < 1024; i+=1){
         unsigned char tile_num = 16 * mem[start+i]; //each tile identifier corresponds to 16 bytes
-        
-        for(k = 0; k < 8; k+=2){
+        if(!(i%32)) x = 0; else x += 8;
+        //draw one single tile reference
+        for(k = 0; k < 16; k+=2){
             unsigned char lsb = mem[tile_base+tile_num];
             unsigned char msb = mem[tile_base+tile_num+1];
         
@@ -113,8 +125,11 @@ void draw_tile(unsigned char mem[]){
             }
             draw_vect[0] = (msb & 0x1) << 1 + (lsb & 0x1);
             draw_vect[1] = (msb & 0x10) + ((lsb & 0x10) >> 1);
-            
-            draw_line(draw_vect, i%32, y+k);
+            int bs;
+            //for(bs = 0; bs < 8; bs++)
+            //    printf("%d", draw_vect[bs]);
+            //printf("\n");
+            draw_line(draw_vect, x, y+(k/2));
         }
         if(i % 32 == 0 && i !=0)
             y += 8;
