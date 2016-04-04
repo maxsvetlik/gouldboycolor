@@ -154,7 +154,7 @@ void bulkcycle(){
     for(i = 0; i < result; i+=1){
         if(cycle())
             exit(-1);
-        if(!(i % 10))
+        if(!(i % 1000))
             draw_tile(mem);
     }
 }

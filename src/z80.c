@@ -153,14 +153,14 @@ int cycle(){
             mem[makeaddress(reg[L], reg[H])] = getData();       //12 cycles
             break;
         /* LD A, n 4 cycles unless specified. Put value n into A*/
-        case(0x0A): reg[A] = makeaddress(reg[C], reg[B]); break; //8 cycles
-        case(0x1A): reg[A] = makeaddress(reg[E], reg[D]); break; //8 cycles
+        case(0x0A): reg[A] = makeaddress(reg[B], reg[C]); break; //8 cycles
+        case(0x1A): reg[A] = makeaddress(reg[D], reg[E]); break; //8 cycles
         /* LD n,A
          * 4 cycles, unless specified */
         case(0x47): reg[B] = reg[A]; break;
-        case(0x4F): reg[B] = reg[A]; break;
-        case(0x57): reg[C] = reg[A]; break;
-        case(0x5F): reg[D] = reg[A]; break;
+        case(0x4F): reg[C] = reg[A]; break;
+        case(0x57): reg[D] = reg[A]; break;
+        case(0x5F): reg[E] = reg[A]; break;
         case(0x67): reg[H] = reg[A]; break;
         case(0x6F): reg[L] = reg[A]; break;
         case(0x02): 
@@ -179,16 +179,28 @@ int cycle(){
         
         /*LD A,(HLD) - HL dec*/
         case(0x3A): reg[A] = mem[makeaddress(reg[L], reg[H])];  //8 cycles
-                    reg[H] -= 1; break;
+                    usi =makeaddress(reg[L], reg[H]);
+                    usi -= 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff; break;
         /*LD (HLD),A - HL dec*/
         case(0x32): mem[makeaddress(reg[L], reg[H])] = reg[A];
-                    reg[H] -= 1; break;                         //8 cycles
+                    usi =makeaddress(reg[L], reg[H]);
+                    usi -= 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff; break;
         /*LD A,(HLD) - HL inc */
         case(0x2A): reg[A] = mem[makeaddress(reg[L], reg[H])];
-                    reg[H] += 1; break;                         //8 cycles
+                    usi =makeaddress(reg[L], reg[H]);
+                    usi += 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff; break;
         /*LD (HLD),A - HL inc */
-        case(0x22): mem[makeaddress(reg[L], reg[H])] = reg[A];
-                    reg[H] += 1; break;                         //8 cycles
+        case(0x22): mem[makeaddress(reg[H], reg[L])] = reg[A];
+                    usi =makeaddress(reg[H], reg[L]);
+                    usi += 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff; break;
         /*LD (n),A where 0xFF00 is the base */
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
         /*LD A,(n) where 0xFF00 is the base */
@@ -231,13 +243,13 @@ int cycle(){
             mem[sp] = reg[H]; sp-=1; mem[sp] = reg[L]; sp-=1; break;
         /*POP nn - 12 cycles*/
         case(0xF1): 
-            reg[F] = mem[sp]; sp+=1; reg[A] = mem[sp]; sp+=1; break;
+            sp+= 1; reg[F] = mem[sp]; sp+=1; reg[A] = mem[sp]; break;
         case(0xC1): 
-            reg[C] = mem[sp]; sp+=1; reg[B] = mem[sp]; sp+=1; break;
+            sp+= 1; reg[C] = mem[sp]; sp+=1; reg[B] = mem[sp]; break;
         case(0xD1): 
-            reg[E] = mem[sp]; sp+=1; reg[D] = mem[sp]; sp+=1; break;
+            sp+= 1; reg[E] = mem[sp]; sp+=1; reg[D] = mem[sp]; break;
         case(0xE1): 
-            reg[L] = mem[sp]; sp+=1; reg[H] = mem[sp]; sp+=1; break;
+            sp+= 1; reg[L] = mem[sp]; sp+=1; reg[H] = mem[sp]; break;
 
         /*
          * ALU - Arithmetic operations
@@ -556,10 +568,12 @@ int cycle(){
         case(0x2C): val = reg[L] + 1; f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, reg[L], val);
                     reg[L] = val;                               break;
-        case(0x34): val = mem[makeaddress(reg[L],reg[H])] + 1; 
+        case(0x34): usi = makeaddress(reg[H],reg[L]) + 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff;        
                     f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, val, mem[makeaddress(reg[L],reg[H])] );
-                    mem[makeaddress(reg[L], reg[H])] = val;     break;      //12 cycles
+                    break;      //12 cycles
 
         /*DEC n - deccrement register. f_s set. f_c unaffected. 
             f_hc set for if no carry from b4. 4 cycles unless specified*/
