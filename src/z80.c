@@ -153,8 +153,8 @@ int cycle(){
             mem[makeaddress(reg[L], reg[H])] = getData();       //12 cycles
             break;
         /* LD A, n 4 cycles unless specified. Put value n into A*/
-        case(0x0A): reg[A] = makeaddress(reg[B], reg[C]); break; //8 cycles
-        case(0x1A): reg[A] = makeaddress(reg[D], reg[E]); break; //8 cycles
+        case(0x0A): reg[A] = makeaddress(reg[C], reg[B]); break; //8 cycles
+        case(0x1A): reg[A] = makeaddress(reg[E], reg[D]); break; //8 cycles
         /* LD n,A
          * 4 cycles, unless specified */
         case(0x47): reg[B] = reg[A]; break;
@@ -184,20 +184,24 @@ int cycle(){
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
         /*LD (HLD),A - HL dec*/
-        case(0x32): mem[makeaddress(reg[L], reg[H])] = reg[A];
+        case(0x32): printf("Getting address: %x\n", makeaddress(reg[L], reg[H]));
+                    mem[makeaddress(reg[L], reg[H])] = reg[A];
                     usi =makeaddress(reg[L], reg[H]);
+                    printf("usi: %x\n", usi);
                     usi -= 1;
+                    printf("usi-1:%x\n", usi);
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
         /*LD A,(HLD) - HL inc */
-        case(0x2A): reg[A] = mem[makeaddress(reg[L], reg[H])];
+        case(0x2A): printf("Getting address: %x\n", makeaddress(reg[L], reg[H]));
+                    reg[A] = mem[makeaddress(reg[L], reg[H])];
                     usi =makeaddress(reg[L], reg[H]);
                     usi += 1;
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
         /*LD (HLD),A - HL inc */
-        case(0x22): mem[makeaddress(reg[H], reg[L])] = reg[A];
-                    usi =makeaddress(reg[H], reg[L]);
+        case(0x22): mem[makeaddress(reg[L], reg[H])] = reg[A];
+                    usi =makeaddress(reg[L], reg[H]);
                     usi += 1;
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
@@ -216,7 +220,7 @@ int cycle(){
         case(0x21): reg[L] = getData(); reg[H] = getData(); break;
         case(0x31): 
                     val = getData(); val2 = getData();
-                    sp = makeaddress(val2, val); break;
+                    sp = makeaddress(val, val2); break;
         /*LD HL,sp - 8cycles*/
         case(0xF9): sp = makeaddress(reg[L], reg[H]); break;
         /*LD HL, SP+n - 12cycles
@@ -231,7 +235,7 @@ int cycle(){
         /*LD (nn),SP - 20 cycles*/
         case(0x08): 
             val = getData(); val2 = getData();
-            mem[makeaddress(val2, val)] = sp; break;
+            mem[makeaddress(val, val2)] = sp; break;
         /*PUSH nn - 16 cycles*/
         case(0xF5): 
             mem[sp] = reg[A]; sp-=1; mem[sp] = reg[F]; sp-=1; break;
@@ -568,7 +572,7 @@ int cycle(){
         case(0x2C): val = reg[L] + 1; f_z = !!val; f_s = 0;
                     set_hc_3b(ADD, reg[L], val);
                     reg[L] = val;                               break;
-        case(0x34): usi = makeaddress(reg[H],reg[L]) + 1;
+        case(0x34): usi = makeaddress(reg[L],reg[H]) + 1;
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff;        
                     f_z = !!val; f_s = 0;
@@ -635,15 +639,15 @@ int cycle(){
                     f_z = 0; f_s = 0;
                     sp = usi;                                   break;
         /* Inc nn register. No flags affected. 8 cycles.*/
-        case(0x03): usi =makeaddress(reg[B], reg[C]);
+        case(0x03): usi =makeaddress(reg[C], reg[B]);
                     usi += 1;
                     reg[B] = (usi >> 8) & 0xff;
                     reg[C] = usi & 0xff;                        break;
-        case(0x13): usi = makeaddress(reg[D], reg[E]); 
+        case(0x13): usi = makeaddress(reg[E], reg[D]); 
                     usi += 1;
                     reg[D] = (usi >> 8) & 0xff;
                     reg[E] = usi & 0xff;                        break;
-        case(0x23): usi = makeaddress(reg[H], reg[L]);
+        case(0x23): usi = makeaddress(reg[L], reg[H]);
                     usi += 1;
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff;                        break;
@@ -894,16 +898,16 @@ int cycle(){
 
         /* JUMPS */
         /*JP nn, where nn is a twobyte immediate (LS byte first). 12 cycles*/
-        case(0xC3): val1 = getData(); val2 = getData(); pc = makeaddress(val2, val1); break;
+        case(0xC3): val1 = getData(); val2 = getData(); pc = makeaddress(val1, val2); break;
         /*JP cc,nn - conditional jump under:
         *  NZ: Jump if f_z is reset
         *  Z : Jump if f_z is set
         *  NC: Jump if f_c is reset
         *  C:  Jump if f_c is set */
-        case(0xC2): val1 = getData(); val2 = getData(); if(!f_z) pc = makeaddress(val2, val1); break;
-        case(0xCA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val2, val1); break;
-        case(0xD2): val1 = getData(); val2 = getData(); if(!f_c) pc = makeaddress(val2, val1); break;
-        case(0xDA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val2, val1); break;
+        case(0xC2): val1 = getData(); val2 = getData(); if(!f_z) pc = makeaddress(val1, val2); break;
+        case(0xCA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val1, val2); break;
+        case(0xD2): val1 = getData(); val2 = getData(); if(!f_c) pc = makeaddress(val1, val2); break;
+        case(0xDA): val1 = getData(); val2 = getData(); if(f_z) pc = makeaddress(val1, val2); break;
         /* JP (HL) 4 cycles*/
         case(0xE9): pc = makeaddress(reg[L], reg[H]);               break;
         /* JR n - add n to current address and jump to it */
@@ -921,16 +925,16 @@ int cycle(){
             printf("Pushed: %x\n", mem[sp+1]);
             mem[sp] = (unsigned char) (pc & 0x00ff); sp -= 1;
             printf("Pushed: %x\n", mem[sp+1]);
-            pc = makeaddress(val2, val1);                           break;
+            pc = makeaddress(val1, val2);                           break;
         /*CALL cc,nn - conditional call 12 cycles*/
         case(0xC4): val1 = getData(); val2 = getData();
-            if(!f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+            if(!f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val1, val2);} break;
         case(0xCC): val1 = getData(); val2 = getData();
-            if(f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);}  break;
+            if(f_z) { mem[sp] = pc; sp -= 1; pc = makeaddress(val1, val2);}  break;
         case(0xD4): val1 = getData(); val2 = getData();
-            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val1, val2);} break;
         case(0xDC): val1 = getData(); val2 = getData();
-            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val2, val1);} break;
+            if(!f_c) { mem[sp] = pc; sp -= 1; pc = makeaddress(val1, val2);} break;
         /*RESTARTS - RST n: push address on to stack, jump to 0x0000 + n*/
         case(0xC7): mem[sp] = pc; sp -= 1; pc = 0x00;                        break;
         case(0xCF): mem[sp] = pc; sp -= 1; pc = 0x08;                        break;       
@@ -944,20 +948,20 @@ int cycle(){
         /*Ret: pop two bytes from stack and jump to that address*/
         case(0xC9): sp += 1;
                     val1 = mem[sp]; sp += 1; val2 = mem[sp];
-                    printf("Returning- lsb %x msb %x\n", val2, val1);
-                    pc = makeaddress(val2, val1);                           break;
+                    printf("Returning- lsb %x msb %x\n", val1, val2);
+                    pc = makeaddress(val1, val2);                           break;
         /*RET cc - conditional return.*/ 
         case(0xC0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
-                if(!f_z) pc = makeaddress(val2, val1);                      break;
+                if(!f_z) pc = makeaddress(val1, val2);                      break;
         case(0xC8): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
-                if(f_z) pc = makeaddress(val2, val1);                       break;
+                if(f_z) pc = makeaddress(val1, val2);                       break;
         case(0xD0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
-                if(!f_c) pc = makeaddress(val2, val1);                      break;
+                if(!f_c) pc = makeaddress(val1, val2);                      break;
         case(0xD8): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
-                if(f_c) pc = makeaddress(val2, val1);                       break;
+                if(f_c) pc = makeaddress(val1, val2);                       break;
         /*RETI - return and enable interrupts*/
         case(0xD9): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
-                    pc = makeaddress(val2, val1);
+                    pc = makeaddress(val1, val2);
                     enable_interrupts();                                    break;
         /*RLA - Rotate A left through carry flag*/
         case(0x17): usi = reg[A] << 1; 
@@ -1082,7 +1086,7 @@ unsigned char reset_bit(unsigned char reg, unsigned char bit){;
 }
 
 /* Creates a 16-bit address from given high and low bit registers */
-unsigned short int makeaddress(unsigned char high, unsigned char low){
+unsigned short int makeaddress(unsigned char low, unsigned char high){
     unsigned short int result = high;
     result = result << 8;
     result += low;
