@@ -26,9 +26,9 @@ SDL_Window* window;
 
 void initilize_colors(SDL_Surface *surface){
     trans = SDL_MapRGBA(surface->format, 255,255,255,0xFF); 
-    lgray = SDL_MapRGBA(surface->format, 211, 211, 211, 0xFF);
-    gray = SDL_MapRGBA(surface->format, 128, 128, 128, 0xFF);
-    dgray = SDL_MapRGBA(surface->format, 105, 105, 105, 0xFF);
+    lgray = SDL_MapRGBA(surface->format, 195, 195, 195, 0xFF);
+    gray = SDL_MapRGBA(surface->format, 100, 100, 100, 0xFF);
+    dgray = SDL_MapRGBA(surface->format, 15, 15, 15, 0xFF);
 }
 Uint32 get_pixel32( SDL_Surface *surface, int x, int y ) { 
     Uint32 *pixels = (Uint32 *)surface->pixels; 
@@ -67,7 +67,6 @@ void init_visualization(){
            
         //Write to window
         SDL_UpdateWindowSurface( win );
-        //SDL_Delay( 10000 );
        }
     }
     surface = screenSurface;
@@ -75,24 +74,25 @@ void init_visualization(){
 }
 
 /* This draws a line of pixels onto a window and pushes changes through
- *
+ * Note. This is a terrible way to do it; writing directly to window is very slow.
+ *      Must utilized SDL's tile mapper for any decent performance.
  * It is assumed that 'line' is an array of 8 pixels, each denoted by a color value in a supported pallet.
  */
-void draw_line(int line[], int x, int y){
+void draw_line(unsigned int line[], int x, int y){
     Uint32 *pixels = (Uint32 *)surface->pixels;
     int i;
     Uint32 color;
     int pallet_col;
     for(i = 0; i < 8; i+=1){
         pallet_col = line[i];
-        /*if(pallet_col  == LGRAY)
+        if(pallet_col  == LGRAY)
             color = lgray;
         else if(pallet_col  == DGRAY)
             color = gray;
         else if(pallet_col == BLACK)
             color = dgray;
         else if(pallet_col == WHITE)
-            color = trans;*/
+            color = trans;
         pixels[(y * surface->w) + x + i] = color;
     }
     SDL_UpdateWindowSurface( window );    
@@ -108,7 +108,7 @@ void draw_line(int line[], int x, int y){
 void draw_tile(unsigned char mem[]){
     int start = 0x9800;
     int tile_base = 0x8800;
-    int draw_vect[8];
+    unsigned int draw_vect[8];
     int i,j,k;
     int x = 0; int y = 0;
     for(i = 0; i < 1024; i+=1){
@@ -118,14 +118,14 @@ void draw_tile(unsigned char mem[]){
         for(k = 0; k < 16; k+=2){
             unsigned char lsb = mem[tile_base+tile_num];
             unsigned char msb = mem[tile_base+tile_num+1];
-        
+            //printf("Found lsb: %x msb: %x at %x\n", lsb, msb, tile_base+tile_num);
             for(j = 2; j < 8; j+=1){
                 unsigned char mask = 1 << j;
-                draw_vect[j] = ((msb & mask) >> (i - 2)) + ((lsb & mask) >> (i-1));
+                draw_vect[j] = ((msb & mask) >> (j - 1)) + ((lsb & mask) >> (j));
             }
             draw_vect[0] = (msb & 0x1) << 1 + (lsb & 0x1);
-            draw_vect[1] = (msb & 0x10) + ((lsb & 0x10) >> 1);
-            int bs;
+            draw_vect[1] = (msb & 0x2) + ((lsb & 0x2) >> 1);
+            //int bs;
             //for(bs = 0; bs < 8; bs++)
             //    printf("%d", draw_vect[bs]);
             //printf("\n");

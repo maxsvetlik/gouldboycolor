@@ -184,17 +184,13 @@ int cycle(){
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
         /*LD (HLD),A - HL dec*/
-        case(0x32): printf("Getting address: %x\n", makeaddress(reg[L], reg[H]));
-                    mem[makeaddress(reg[L], reg[H])] = reg[A];
+        case(0x32): mem[makeaddress(reg[L], reg[H])] = reg[A];
                     usi =makeaddress(reg[L], reg[H]);
-                    printf("usi: %x\n", usi);
                     usi -= 1;
-                    printf("usi-1:%x\n", usi);
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff; break;
         /*LD A,(HLD) - HL inc */
-        case(0x2A): printf("Getting address: %x\n", makeaddress(reg[L], reg[H]));
-                    reg[A] = mem[makeaddress(reg[L], reg[H])];
+        case(0x2A): reg[A] = mem[makeaddress(reg[L], reg[H])];
                     usi =makeaddress(reg[L], reg[H]);
                     usi += 1;
                     reg[H] = (usi >> 8) & 0xff;
@@ -922,9 +918,7 @@ int cycle(){
         /*CALL nn */
         case(0xCD): val1 = getData(); val2 = getData();
             mem[sp] = (unsigned char) (pc & 0xff00); sp -= 1;
-            printf("Pushed: %x\n", mem[sp+1]);
             mem[sp] = (unsigned char) (pc & 0x00ff); sp -= 1;
-            printf("Pushed: %x\n", mem[sp+1]);
             pc = makeaddress(val1, val2);                           break;
         /*CALL cc,nn - conditional call 12 cycles*/
         case(0xC4): val1 = getData(); val2 = getData();
@@ -948,7 +942,6 @@ int cycle(){
         /*Ret: pop two bytes from stack and jump to that address*/
         case(0xC9): sp += 1;
                     val1 = mem[sp]; sp += 1; val2 = mem[sp];
-                    printf("Returning- lsb %x msb %x\n", val1, val2);
                     pc = makeaddress(val1, val2);                           break;
         /*RET cc - conditional return.*/ 
         case(0xC0): val1 = mem[sp]; sp += 1; val2 = mem[sp]; sp +=1;
