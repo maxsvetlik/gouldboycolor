@@ -7,8 +7,8 @@ BIN_DIR=bin/
 
 all: visual z80
 
-run: z80
-	./$(BIN_DIR)$<
+run: visual z80
+	./$(BIN_DIR)z80
 
 z80: $(SRC_DIR)*.c
 	$(COMP) $(CFLAGS) -I$(INC_DIR) $^ visual.o -o $(BIN_DIR)$@ `sdl2-config --cflags --libs`

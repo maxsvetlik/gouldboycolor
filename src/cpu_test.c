@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+unsigned char render = 0;
 /*uses scanf to retrieve an integer from the user
  * in an interactive session*/
 unsigned short int getint(){
@@ -84,6 +85,7 @@ void print_global_menu(){
     printf("2 - Set Memory\n");
     printf("3 - Read State\n");
     printf("4 - Read Memory\n");
+    printf("7 - Toggle Visual Render\n");
     printf("8 - Call bulk cycle\n");
     printf("9 - Call cycle\n");
 }
@@ -144,6 +146,15 @@ void handle_set_reg(){
             printf("Unsupported option.\n");
     }
 }
+void run_until(){
+    printf("Enter the desired stackpointer in decimal form: ");
+    int result = getint();
+    if(result == '\n')
+         result = getint();
+    printf("\n");
+    while(pc != result)
+        cycle();
+}
 void bulkcycle(){
     printf("Enter a number: ");
     int result = getint();
@@ -154,9 +165,13 @@ void bulkcycle(){
     for(i = 0; i < result; i+=1){
         if(cycle())
             exit(-1);
-        if(!(i % 1000))
+        if(!(i%5) && render)
             draw_tile(mem);
     }
+}
+void toggle_render(){
+    render = !render;
+    printf("Render is now: %u\n", render);
 }
 void interactive_session(){
     char input;
@@ -177,8 +192,11 @@ void interactive_session(){
                 val2 = getint();
                 print_mem(val1, val2);
                 break;
+            case('6'): run_until(); break;
+            case('7'): toggle_render(); break;
             case('8'): bulkcycle();         break;
-            case('9'): if(cycle()) exit(-1);             break;
+            case('9'): if(cycle()) exit(-1);
+                        if(render) draw_tile(mem); break;
             default: printf("Unsupported command, please try again.\n"); 
         }
     }

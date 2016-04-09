@@ -85,13 +85,13 @@ void draw_line(unsigned int line[], int x, int y){
     int pallet_col;
     for(i = 0; i < 8; i+=1){
         pallet_col = line[i];
-        if(pallet_col  == LGRAY)
+        if(pallet_col  == 0)
             color = lgray;
-        else if(pallet_col  == DGRAY)
-            color = gray;
-        else if(pallet_col == BLACK)
+        else if(pallet_col  == 2)
             color = dgray;
-        else if(pallet_col == WHITE)
+        else if(pallet_col == 3)
+            color = dgray;
+        else if(pallet_col == 1)
             color = trans;
         pixels[(y * surface->w) + x + i] = color;
     }
@@ -107,32 +107,40 @@ void draw_line(unsigned int line[], int x, int y){
  */
 void draw_tile(unsigned char mem[]){
     int start = 0x9800;
-    int tile_base = 0x8800;
+    int tile_base = 0x8000;
     unsigned int draw_vect[8];
     int i,j,k;
     int x = 0; int y = 0;
+    //mem[0xFF44] = 0x90;
+    int tempy = 0;
     for(i = 0; i < 1024; i+=1){
-        unsigned char tile_num = 16 * mem[start+i]; //each tile identifier corresponds to 16 bytes
-        if(!(i%32)) x = 0; else x += 8;
+        unsigned char tile_num = mem[start+i]; 
+        
         //draw one single tile reference
         for(k = 0; k < 16; k+=2){
-            unsigned char lsb = mem[tile_base+tile_num];
-            unsigned char msb = mem[tile_base+tile_num+1];
-            //printf("Found lsb: %x msb: %x at %x\n", lsb, msb, tile_base+tile_num);
-            for(j = 2; j < 8; j+=1){
-                unsigned char mask = 1 << j;
-                draw_vect[j] = ((msb & mask) >> (j - 1)) + ((lsb & mask) >> (j));
-            }
-            draw_vect[0] = (msb & 0x1) << 1 + (lsb & 0x1);
-            draw_vect[1] = (msb & 0x2) + ((lsb & 0x2) >> 1);
-            //int bs;
-            //for(bs = 0; bs < 8; bs++)
-            //    printf("%d", draw_vect[bs]);
-            //printf("\n");
+            unsigned char lsb = mem[tile_base+(16*tile_num)+k];     //every tile is 16 bytes
+            unsigned char msb = mem[tile_base+(16*tile_num)+k+1];   // ...
+            //if(lsb || msb)
+            //    printf("Found lsb: %x msb: %x at %x from map %x\n", lsb, msb, tile_base+tile_num, start+i);
+            
+            draw_vect[0] = ((msb & 1 << 7) >> 6) + ((lsb & 1 << 7) >> 7);
+            draw_vect[1] = ((msb & 1 << 6) >> 5) + ((lsb & 1 << 6) >> 6);
+            draw_vect[2] = ((msb & 1 << 5) >> 4) + ((lsb & 1 << 5) >> 5);
+            draw_vect[3] = ((msb & 1 << 4) >> 3) + ((lsb & 1 << 4) >> 4);
+            draw_vect[4] = ((msb & 1 << 3) >> 2) + ((lsb & 1 << 3) >> 3);
+            draw_vect[5] = ((msb & 1 << 2) >> 1) + ((lsb & 1 << 2) >> 2);
+            draw_vect[6] = ((msb & 1 << 1) >> 0) + ((lsb & 1 << 1) >> 1);
+            draw_vect[7] = ((msb & 1 << 0) << 1) + ((lsb & 1 << 0) >> 0);
+            
             draw_line(draw_vect, x, y+(k/2));
+            
         }
-        if(i % 32 == 0 && i !=0)
+        if(x >= 248){ 
+            x = 0; 
             y += 8;
+        }
+        else 
+            x += 8;
     }
 }
 
@@ -142,9 +150,4 @@ void exit_clean(){
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
-/*
-int main(int argc, char** args){
-    init();
-    exit_clean();
-}*/
 

@@ -153,8 +153,9 @@ int cycle(){
             mem[makeaddress(reg[L], reg[H])] = getData();       //12 cycles
             break;
         /* LD A, n 4 cycles unless specified. Put value n into A*/
-        case(0x0A): reg[A] = makeaddress(reg[C], reg[B]); break; //8 cycles
-        case(0x1A): reg[A] = makeaddress(reg[E], reg[D]); break; //8 cycles
+        case(0x0A): reg[A] = mem[makeaddress(reg[C], reg[B])]; break; //8 cycles
+        case(0x1A): reg[A] = mem[makeaddress(reg[E], reg[D])]; 
+                    printf("reg[A] :%x makeaddress(ED): %x\n", reg[A], makeaddress(reg[E], reg[D])); break; //8 cycles
         /* LD n,A
          * 4 cycles, unless specified */
         case(0x47): reg[B] = reg[A]; break;
@@ -166,11 +167,12 @@ int cycle(){
         case(0x02): 
             mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
         case(0x12): 
-            mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
+            mem[makeaddress(reg[E], reg[D])] = reg[A]; break;  //8 cycles
         case(0x77): 
-            mem[makeaddress(reg[C], reg[B])] = reg[A]; break;  //8 cycles
+            mem[makeaddress(reg[L], reg[H])] = reg[A]; break;  //8 cycles
         case(0xEA):
-            mem[makeaddress(getData(), getData())] = reg[A];    //16 cycles
+            val1 = getData(); val2 = getData();
+            mem[makeaddress(val1, val2)] = reg[A];    //16 cycles
             break;
     
         /*LD A,(C) where 0xFF00 is the base*/
@@ -204,7 +206,9 @@ int cycle(){
         /*LD (n),A where 0xFF00 is the base */
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
         /*LD A,(n) where 0xFF00 is the base */
-        case(0xF0): reg[A] = mem[0xFF00 + getData()]; break;    //12 cycles 
+        case(0xF0): val1 = getData();
+                    printf("VAL: %x\n", val1);
+                    reg[A] = mem[0xFF00 + val1]; break;    //12 cycles 
  
         /*
          * 16-bit Loads
@@ -515,91 +519,91 @@ int cycle(){
 
         /*CP A with n. A-n, sets flags but tosses result
             4cycles unless specified. f_c set if no borrow*/
-        case(0xBF): f_z = reg[A] == reg[A]; f_s = 1;
+        case(0xBF): f_z = !(reg[A] - reg[A]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[A]);
                     f_c = reg[A] < reg[A];                      break;
-        case(0xB8): f_z = reg[A] == reg[B]; f_s = 1;
+        case(0xB8): f_z = !(reg[A] - reg[B]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[B]);
                     f_c = reg[A] < reg[B];                      break;
-        case(0xB9): f_z = reg[A] == reg[C]; f_s = 1;
+        case(0xB9): f_z = !(reg[A] - reg[C]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[C]);
                     f_c = reg[A] < reg[C];                      break;
-        case(0xBA): f_z = reg[A] == reg[D]; f_s = 1;
+        case(0xBA): f_z = !(reg[A] - reg[D]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[D]);
                     f_c = reg[A] < reg[D];                      break;
-        case(0xBB): f_z = reg[A] == reg[E]; f_s = 1;
+        case(0xBB): f_z = !(reg[A] - reg[E]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[E]);
                     f_c = reg[A] < reg[E];                      break;
-        case(0xBC): f_z = reg[A] == reg[H]; f_s = 1;
+        case(0xBC): f_z = !(reg[A] - reg[H]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[H]);
                     f_c = reg[A] < reg[H];                      break;
-        case(0xBD): f_z = reg[A] == reg[L]; f_s = 1;
+        case(0xBD): f_z = !(reg[A] - reg[L]); f_s = 1;
                     setflags_carry(SUB,reg[A],reg[L]);
                     f_c = reg[A] < reg[L];                      break;
         case(0xBE): val = mem[makeaddress(reg[L], reg[H])];
-                    f_z = reg[A] == val; f_s = 1;
+                    f_z = !(reg[A] - val); f_s = 1;
                     setflags_carry(SUB,reg[A],val);
                     f_c = reg[A] < val;                         break;      //8 cycles
         case(0xFE): val = getData();
-                    f_z = reg[A] == val; f_s = 1;
+                    f_z = !(reg[A] - val); f_s = 1;
                     setflags_carry(SUB,reg[A],val);
                     f_c = reg[A] < val;                         break;      //8 cycles
 
         /*INC n - increment register. f_s reset. f_c unaffected. 
             f_hc set for b3 carry 4 cycles unless specified*/
-        case(0x3C): val = reg[A] + 1; f_z = !!val; f_s = 0;
+        case(0x3C): val = reg[A] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[A], val);
                     reg[A] = val;                               break;
-        case(0x04): val = reg[B] + 1; f_z = !!val; f_s = 0;
+        case(0x04): val = reg[B] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[B], val);                
                     reg[B] = val;                               break;
-        case(0x0C): val = reg[C] + 1; f_z = !!val; f_s = 0;
+        case(0x0C): val = reg[C] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[C], val);
                     reg[C] = val;                               break;
-        case(0x14): val = reg[D] + 1; f_z = !!val; f_s = 0;
+        case(0x14): val = reg[D] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[D], val);
                     reg[D] = val;                               break;
-        case(0x1C): val = reg[E] + 1; f_z = !!val; f_s = 0;
+        case(0x1C): val = reg[E] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[E], val);
                     reg[E] = val;                               break;
-        case(0x24): val = reg[H] + 1; f_z = !!val; f_s = 0;
+        case(0x24): val = reg[H] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[H], val);
                     reg[H] = val;                               break;
-        case(0x2C): val = reg[L] + 1; f_z = !!val; f_s = 0;
+        case(0x2C): val = reg[L] + 1; f_z = !val; f_s = 0;
                     set_hc_3b(ADD, reg[L], val);
                     reg[L] = val;                               break;
         case(0x34): usi = makeaddress(reg[L],reg[H]) + 1;
                     reg[H] = (usi >> 8) & 0xff;
                     reg[L] = usi & 0xff;        
-                    f_z = !!val; f_s = 0;
+                    f_z = !val; f_s = 0;
                     set_hc_3b(ADD, val, mem[makeaddress(reg[L],reg[H])] );
                     break;      //12 cycles
 
         /*DEC n - deccrement register. f_s set. f_c unaffected. 
             f_hc set for if no carry from b4. 4 cycles unless specified*/
-        case(0x3D): val = reg[A] - 1; f_z = !!val; f_s = 0;
+        case(0x3D): val = reg[A] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[A], 1);
                     reg[A] = val;                               break;
-        case(0x05): val = reg[B] - 1; f_z = !!val; f_s = 0;
+        case(0x05): val = reg[B] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[B], 1);                
                     reg[B] = val;                               break;
-        case(0x0D): val = reg[C] - 1; f_z = !!val; f_s = 0;
+        case(0x0D): val = reg[C] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[C], 1);
                     reg[C] = val;                               break;
-        case(0x15): val = reg[D] - 1; f_z = !!val; f_s = 0;
+        case(0x15): val = reg[D] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[D], 1);
                     reg[D] = val;                               break;
-        case(0x1D): val = reg[E] - 1; f_z = !!val; f_s = 0;
+        case(0x1D): val = reg[E] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[E], 1);
                     reg[E] = val;                               break;
-        case(0x25): val = reg[H] - 1; f_z = !!val; f_s = 0;
+        case(0x25): val = reg[H] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[H], 1);
                     reg[H] = val;                               break;
-        case(0x2D): val = reg[L] - 1; f_z = !!val; f_s = 0;
+        case(0x2D): val = reg[L] - 1; f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, reg[L], 1);
                     reg[L] = val;                               break;
         case(0x35): val = mem[makeaddress(reg[L],reg[H])] - 1; 
-                    f_z = !!val; f_s = 0;
+                    f_z = !val; f_s = 0;
                     set_hc_nb_4b(SUB, mem[makeaddress(reg[L],reg[H])], 1);
                     mem[makeaddress(reg[L], reg[H])] = val;     break;      //12 cycles
         
@@ -649,9 +653,18 @@ int cycle(){
                     reg[L] = usi & 0xff;                        break;
         case(0x33): sp += 1;                                    break;
         /* Dec nn register. No flags affected. 8 cycles*/
-        case(0x0B): mem[makeaddress(reg[C], reg[B])] -= 1;      break;
-        case(0x1B): mem[makeaddress(reg[E], reg[D])] -= 1;      break;
-        case(0x2B): mem[makeaddress(reg[L], reg[H])] -= 1;      break;
+        case(0x0B): usi =makeaddress(reg[C], reg[B]);
+                    usi -= 1;
+                    reg[B] = (usi >> 8) & 0xff;
+                    reg[C] = usi & 0xff;                        break;
+        case(0x1B): usi =makeaddress(reg[E], reg[D]);
+                    usi -= 1;
+                    reg[D] = (usi >> 8) & 0xff;
+                    reg[E] = usi & 0xff;                        break;
+        case(0x2B): usi =makeaddress(reg[L], reg[H]);
+                    usi += 1;
+                    reg[H] = (usi >> 8) & 0xff;
+                    reg[L] = usi & 0xff;                        break;
         case(0x3B): sp -= 1;                                    break;
         
         /* 
@@ -667,29 +680,29 @@ int cycle(){
                     * f_s, f_hc, f_c reset. 8 cycles unless specified.*/
                     case(0x37): val2 = 0; val2 = val2 | (reg[A] & 0x0F);
                         val2 = (val2 << 3) | (reg[A] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x30): val2 = 0; val2 = val2 | (reg[B] & 0x0F);
                         val2 = (val2 << 3) | (reg[B] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x31): val2 = 0; val2 = val2 | (reg[C] & 0x0F);
                         val2 = (val2 << 3) | (reg[C] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x32): val2 = 0; val2 = val2 | (reg[D] & 0x0F);
                         val2 = (val2 << 3) | (reg[D] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x33): val2 = 0; val2 = val2 | (reg[E] & 0x0F);
                         val2 = (val2 << 3) | (reg[E] & 0xF0); 
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x34): val2 = 0; val2 = val2 | (reg[H] & 0x0F);
                         val2 = (val2 << 3) | (reg[H] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x35): val2 = 0; val2 = val2 | (reg[L] & 0x0F);
                         val2 = (val2 << 3) | (reg[L] & 0xF0);
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     case(0x36): val = mem[makeaddress(reg[L], reg[H])];
                         val2 = 0; val2 = val2 | (val & 0x0F);
                         val2 = (val2 << 3) | (val & 0xF0);   break; //16 cycles
-                        f_s = 0; f_hc = 0; f_c = 0; f_z = !!val2;  break;
+                        f_s = 0; f_hc = 0; f_c = 0; f_z = !val2;  break;
                     /*BIT ops*/
                     /*BIT b,r - test bit b in register r. f_z re/set, f_s reset, f_hc = set
                      * f_c = not affected*/
@@ -850,21 +863,22 @@ int cycle(){
                     case(0x86): val2 = getData(); 
                         mem[makeaddress(reg[L], reg[H])]= reset_bit(mem[makeaddress(reg[L], reg[H])], val2); break;
                     /*RL n - Rotate r left n through carry flag. */
-                    case(0x17): reg[A] = rotate_left_tc(A); f_z = 0; f_hc = 0; f_z = !!reg[A];               break;
-                    case(0x10): reg[B] = rotate_left_tc(B); f_z = 0; f_hc = 0; f_z = !!reg[B];               break;
-                    case(0x11): reg[C] = rotate_left_tc(C); f_z = 0; f_hc = 0; f_z = !!reg[C];               break;
-                    case(0x12): reg[D] = rotate_left_tc(D); f_z = 0; f_hc = 0; f_z = !!reg[D];               break;
-                    case(0x13): reg[E] = rotate_left_tc(E); f_z = 0; f_hc = 0; f_z = !!reg[E];               break;
-                    case(0x14): reg[H] = rotate_left_tc(H); f_z = 0; f_hc = 0; f_z = !!reg[H];               break;
-                    case(0x15): reg[L] = rotate_left_tc(L); f_z = 0; f_hc = 0; f_z = !!reg[L];               break;
+                    case(0x17): reg[A] = rotate_left_tc(A); f_z = 0; f_hc = 0; f_z = !reg[A];               break;
+                    case(0x10): reg[B] = rotate_left_tc(B); f_z = 0; f_hc = 0; f_z = !reg[B];               break;
+                    case(0x11): reg[C] = rotate_left_tc(C); f_z = 0; f_hc = 0; f_z = !reg[C];               break;
+                    case(0x12): reg[D] = rotate_left_tc(D); f_z = 0; f_hc = 0; f_z = !reg[D];               break;
+                    case(0x13): reg[E] = rotate_left_tc(E); f_z = 0; f_hc = 0; f_z = !reg[E];               break;
+                    case(0x14): reg[H] = rotate_left_tc(H); f_z = 0; f_hc = 0; f_z = !reg[H];               break;
+                    case(0x15): reg[L] = rotate_left_tc(L); f_z = 0; f_hc = 0; f_z = !reg[L];               break;
                     case(0x16): usi = mem[makeaddress(reg[L], reg[H])] << 1; usi = usi | f_c;
-                                f_c = !!(usi & 0x100000000); mem[makeaddress(reg[L],reg[H])] = usi & 0xFF;
-                                f_z = 0; f_hc = 0; f_z = !!mem[makeaddress(reg[L], reg[H])];               break;
+                                f_c = !!(usi & 0x80); mem[makeaddress(reg[L],reg[H])] = usi & 0xFF;
+                                f_z = 0; f_hc = 0; f_z = !mem[makeaddress(reg[L], reg[H])];                 break;
 
                     default: fprintf(stderr, "Undefined opcode. %uc at %u\n. Halting. \n", op, pc);
                         crash_dump();
                         return -1;                                 break;
                 }
+                break;
                     
         /*DAA - Decimal adjust register A. */
 
@@ -959,8 +973,9 @@ int cycle(){
         /*RLA - Rotate A left through carry flag*/
         case(0x17): usi = reg[A] << 1; 
                     usi = usi | f_c; 
-                    f_c = !!(usi & 0x100000000); reg[A] = usi & 0xFF;
-                    f_z = !!reg[A]; f_s = 0; f_hc = 0; break;
+                    f_c = !!(reg[A] & 0x80); 
+                    reg[A] = usi & 0xFF;
+                    f_z = !reg[A]; f_s = 0; f_hc = 0; break;
         default: fprintf(stderr, "Undefined opcode. %x at %u.\n Halting. \n", op, sp);
                  crash_dump(); 
                  return -1;                                break;
@@ -992,8 +1007,9 @@ unsigned char rotate_left_tc(unsigned int reg_num){
     unsigned int usi;
     unsigned char reg_val = reg[reg_num];
     usi = reg_val << 1; 
-    usi = usi | f_c; 
-    f_c = !!(usi & 0x100000000); 
+    usi = usi | f_c;
+    f_c = !!(reg_val & 0x80);
+    //usi = usi | f_c;
     return usi & 0xFF;
 }
 /* Sets the HC (half carry, bit 3), and C (carry, bit 7) flags directly
@@ -1099,7 +1115,8 @@ void reset(){
     FILE *fp;
     char *mode = "r";
     char inputFilename[] = "DMG_ROM.bin";
-    unsigned char hex[256] = "";
+    char noncopyrightgame[] = "roms/zelda_links_awakening.gb";
+    unsigned char hex[512] = "";
     fp = fopen(inputFilename, mode);
     int i;
     size_t bytes = 0;
@@ -1112,10 +1129,24 @@ void reset(){
     while( ( bytes = fread ( &hex, 1, 256, fp)) > 0) {
         for(i = 0; i < bytes; i++) {
             mem[i] = hex[i];
-            printf ( "setting in mem[%d] %x\n", i, mem[i]);
+            printf ( "setting in mem[%x] %x\n", i, mem[i]);
         }
     }
     fclose ( fp);
+    //Load in a handwritten, non-copyrighted gameboy file
+    fp = fopen(noncopyrightgame, mode);
+    if(fp == NULL) {
+        fprintf(stderr, "ERROR: Cannot read non copyright game. Is it in ./roms?. Bootstrap failed...\n");
+        exit(1);
+    }
+    
+    bytes = fread ( &hex, 1, 512, fp);
+        for(i = 255; i < bytes; i++) {
+            mem[i] = hex[i];
+            printf ( "setting in mem[%x] %x\n", i, mem[i]);
+        }
+    
+    
     //execute loaded ROM
     pc = 0x00;
     sp = 0xFFFE;
