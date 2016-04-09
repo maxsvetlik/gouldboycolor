@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-unsigned char render = 0;
+unsigned char render = 1;
 /*uses scanf to retrieve an integer from the user
  * in an interactive session*/
 unsigned short int getint(){
@@ -85,6 +85,7 @@ void print_global_menu(){
     printf("2 - Set Memory\n");
     printf("3 - Read State\n");
     printf("4 - Read Memory\n");
+    printf("6 - Cycle until PC matches specified value\n");
     printf("7 - Toggle Visual Render\n");
     printf("8 - Call bulk cycle\n");
     printf("9 - Call cycle\n");
@@ -165,13 +166,13 @@ void bulkcycle(){
     for(i = 0; i < result; i+=1){
         if(cycle())
             exit(-1);
-        if(!(i%5) && render)
+        if(render)
             draw_tile(mem);
     }
 }
 void toggle_render(){
     render = !render;
-    printf("Render is now: %u\n", render);
+    printf("\nRender is now: %u\n", render);
 }
 void interactive_session(){
     char input;

@@ -207,7 +207,6 @@ int cycle(){
         case(0xE0): mem[0xFF00 + getData()] = reg[A]; break;    //12 cycles
         /*LD A,(n) where 0xFF00 is the base */
         case(0xF0): val1 = getData();
-                    printf("VAL: %x\n", val1);
                     reg[A] = mem[0xFF00 + val1]; break;    //12 cycles 
  
         /*

@@ -9,9 +9,9 @@ Details about library dependencies (for sound, visualization) will be added as e
 Dependencies:<br/>
     - SDL2.x ($ apt-get install libsdl2-dev) <br/>
 TODO:<br/>
-    - CPU and Memory Emulation [In progress] <br/>
-    - Memory Mapping and I/O <br/>
-    - Visualization and I/O <br/>
+    - CPU and Memory Emulation [Complete] <br/>
+    - Memory Mapping and I/O [In progress]<br/>
+    - Full Visualization and I/O [In progress]<br/>
 
 Wishlist: <br/>
     - Sound emulation <br/>
