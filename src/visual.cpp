@@ -24,8 +24,9 @@ Uint32 black;   //black
 
 unsigned char color_map[4];
 
-SDL_Surface* surface;
-SDL_Window* window;
+SDL_Surface* surface;   //holds the surface of the screen
+SDL_Window* window;     //holds the window
+SDL_Surface* fullBuff;  //holds the full 'background' buffer, 256x256 pixels
 
 void initilize_colors(SDL_Surface *surface){
     white = SDL_MapRGBA(surface->format, 255,255,255,0xFF); 
@@ -56,7 +57,7 @@ void init_visualization(){
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 ){
         printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
     } else{
-        win = SDL_CreateWindow( "GouldBoyColor", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, BUFFER_WIDTH, BUFFER_HEIGHT, SDL_WINDOW_SHOWN );
+        win = SDL_CreateWindow( "GouldBoyColor", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
         if( win == NULL){
             printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
             exit(-1);
@@ -73,6 +74,7 @@ void init_visualization(){
         SDL_UpdateWindowSurface( win );
        }
     }
+    fullBuff =  SDL_CreateRGBSurface(0,BUFFER_WIDTH,BUFFER_HEIGHT,32,0,0,0,0);
     surface = screenSurface;
     window = win;
 }
@@ -83,7 +85,7 @@ void init_visualization(){
  * It is assumed that 'line' is an array of 8 pixels, each denoted by a color value in a supported pallet.
  */
 void draw_line(unsigned int line[], int x, int y){
-    Uint32 *pixels = (Uint32 *)surface->pixels;
+    Uint32 *pixels = (Uint32 *)fullBuff->pixels;
     int i;
     Uint32 color;
     int pallet_col;
@@ -98,9 +100,26 @@ void draw_line(unsigned int line[], int x, int y){
             color = dgray;
         else if(color == BLACK)
             color = black;
-        pixels[(y * surface->w) + x + i] = color;
+        pixels[(y * fullBuff->w) + x + i] = color;
     }
        
+}
+
+/* This method draws the appropriate region of the fullBuffer to the screen
+ * buffer and window.
+ * This is accounted for by visual registers in VRAM
+ */
+void flush_to_screen(unsigned char mem[]){
+    unsigned char xpos = mem[SCX];
+    unsigned char ypos = mem[SCY];
+    Uint32 *buff_pixels = (Uint32 *)fullBuff->pixels;
+    Uint32 *screen_pixels = (Uint32 *)surface->pixels;
+
+    int i,j;
+    for(i = 0; i < SCREEN_WIDTH; i += 1)
+        for(j = 0; j < SCREEN_HEIGHT; j += 1){
+            screen_pixels[(j * surface->w) + i] = buff_pixels[((ypos + j) * fullBuff->w) + xpos + i];        
+        }
 }
 
 /* Draw all the tiles referenced in 0x8800 to 8fff or 0x8800 to 97ff depending on LCDC reg.
@@ -118,6 +137,8 @@ void draw_tile(unsigned char mem[]){
     int start = 0x9800;
     int tile_base = 0x8000;
     char signed_tiles = 0;
+    
+    mem[0xFF44] = 0x90;
     //check the LCDC register, set approriate flags
     unsigned char lcdc = mem[LCDC];
     char lcd_enable = !!(lcdc & 0x80);
@@ -183,6 +204,7 @@ void draw_tile(unsigned char mem[]){
     }
 
     //update window only after all lines are updated
+    flush_to_screen(mem);
     SDL_UpdateWindowSurface( window ); 
 }
 
