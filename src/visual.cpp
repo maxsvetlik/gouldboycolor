@@ -28,6 +28,11 @@ SDL_Surface* surface;   //holds the surface of the screen
 SDL_Window* window;     //holds the window
 SDL_Surface* fullBuff;  //holds the full 'background' buffer, 256x256 pixels
 
+SDL_Renderer* renderer; 
+SDL_Texture* fullTexture;
+
+SDL_Rect screen_rect;
+
 void initilize_colors(SDL_Surface *surface){
     white = SDL_MapRGBA(surface->format, 255,255,255,0xFF); 
     lgray = SDL_MapRGBA(surface->format, 195, 195, 195, 0xFF);
@@ -62,21 +67,19 @@ void init_visualization(){
             printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
             exit(-1);
         } else {
-       //Get window surface
-        screenSurface = SDL_GetWindowSurface( win );
-
-         initilize_colors(screenSurface);
-        
-        //Set background color (white, here)
-        SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
-           
-        //Write to window
-        SDL_UpdateWindowSurface( win );
+        //Get window surface
+        //screenSurface = SDL_GetWindowSurface( win );
+        renderer = SDL_CreateRenderer( win, -1, SDL_RENDERER_ACCELERATED );
+        //SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+        //SDL_UpdateWindowSurface( win );
        }
     }
     fullBuff =  SDL_CreateRGBSurface(0,BUFFER_WIDTH,BUFFER_HEIGHT,32,0,0,0,0);
+    initilize_colors(fullBuff);
     surface = screenSurface;
     window = win;
+    screen_rect.w = SCREEN_WIDTH;
+    screen_rect.h = SCREEN_HEIGHT;
 }
 
 /* This draws a line of pixels onto a window and pushes changes through
@@ -102,7 +105,6 @@ void draw_line(unsigned int line[], int x, int y){
             color = black;
         pixels[(y * fullBuff->w) + x + i] = color;
     }
-       
 }
 
 /* This method draws the appropriate region of the fullBuffer to the screen
@@ -112,7 +114,7 @@ void draw_line(unsigned int line[], int x, int y){
 void flush_to_screen(unsigned char mem[]){
     unsigned char xpos = mem[SCX];
     unsigned char ypos = mem[SCY];
-    Uint32 *buff_pixels = (Uint32 *)fullBuff->pixels;
+    /*Uint32 *buff_pixels = (Uint32 *)fullBuff->pixels;
     Uint32 *screen_pixels = (Uint32 *)surface->pixels;
 
     int i,j;
@@ -120,6 +122,15 @@ void flush_to_screen(unsigned char mem[]){
         for(j = 0; j < SCREEN_HEIGHT; j += 1){
             screen_pixels[(j * surface->w) + i] = buff_pixels[((ypos + j) * fullBuff->w) + xpos + i];        
         }
+    */
+    fullTexture = SDL_CreateTextureFromSurface( renderer, fullBuff );
+    screen_rect.x = xpos;
+    screen_rect.y = ypos;
+    //Render texture to screen 
+    SDL_RenderCopy( renderer, fullTexture, &screen_rect, NULL ); 
+    //Update screen 
+    SDL_RenderPresent( renderer );
+    SDL_DestroyTexture(fullTexture);
 }
 
 /* Draw all the tiles referenced in 0x8800 to 8fff or 0x8800 to 97ff depending on LCDC reg.
@@ -137,7 +148,12 @@ void draw_tile(unsigned char mem[]){
     int start = 0x9800;
     int tile_base = 0x8000;
     char signed_tiles = 0;
-    
+    int bindex;
+
+
+    Uint32 color;
+    int pallet_col;
+    Uint32 * buff_pix = (Uint32 *)fullBuff->pixels;
     mem[0xFF44] = 0x90;
     //check the LCDC register, set approriate flags
     unsigned char lcdc = mem[LCDC];
@@ -192,7 +208,7 @@ void draw_tile(unsigned char mem[]){
                 draw_vect[7] = ((msb & 1 << 0) << 1) + ((lsb & 1 << 0) >> 0);
                 
                 draw_line(draw_vect, x, y+(k/2));
-                
+                //flush_to_screen(mem);
             }
             if(x >= 248){ 
                 x = 0; 
@@ -205,13 +221,15 @@ void draw_tile(unsigned char mem[]){
 
     //update window only after all lines are updated
     flush_to_screen(mem);
-    SDL_UpdateWindowSurface( window ); 
+    //SDL_UpdateWindowSurface( window ); 
 }
 
 //Exit SDL cleanly
 void exit_clean(){
     SDL_FreeSurface(surface);
     SDL_DestroyWindow(window);
+    SDL_DestroyTexture(fullTexture);
+    SDL_DestroyRenderer(renderer);
     SDL_Quit();
 }
 

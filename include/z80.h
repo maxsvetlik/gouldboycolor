@@ -29,6 +29,11 @@
 #define ADD 1
 #define SUB 2
 
+//this is the number of cycles that pass between
+//screen updates. => 60fps since the base frequency is 4194304.
+//(4194304/60) = RENDERCYCLES
+#define RENDERCYCLES 69905
+
 extern unsigned char       mem[];
 extern unsigned char       reg[];
 extern unsigned short int  pc;
@@ -39,6 +44,7 @@ extern unsigned char       f_hc;
 extern unsigned char       f_c;
 
 int cycle();
+void check_graphics();
 unsigned char rotate_left_tc(unsigned int reg_num);
 void setflags_carry(char op, unsigned char val1, unsigned char val2);
 void setflags_carry16(char op, unsigned short int val1, unsigned short int val2);

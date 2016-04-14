@@ -166,8 +166,8 @@ void bulkcycle(){
     for(i = 0; i < result; i+=1){
         if(cycle())
             exit(-1);
-        if(render)
-            draw_tile(mem);
+        //if(render)
+        //    draw_tile(mem);
     }
 }
 void toggle_render(){
@@ -197,7 +197,8 @@ void interactive_session(){
             case('7'): toggle_render(); break;
             case('8'): bulkcycle();         break;
             case('9'): if(cycle()) exit(-1);
-                        if(render) draw_tile(mem); break;
+                       // if(render) draw_tile(mem); 
+                       break;
             default: printf("Unsupported command, please try again.\n"); 
         }
     }

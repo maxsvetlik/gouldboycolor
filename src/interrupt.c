@@ -3,7 +3,7 @@
 #include "error.h"
 
 #include <stdio.h>
-
+#include <stdlib.h>
 void enable_interrupts(){
     f_ime = 1;
 }
@@ -26,6 +26,7 @@ void interrupt_handler(){
     if(!f_ime){
         printf("ERROR: Interrupt master enable flag is not set, but the interrupt handler has been entered.\n");
         crash_dump();
+        exit(-1);
     }
     int i;
     //5 interrupt vector entries
@@ -35,6 +36,8 @@ void interrupt_handler(){
             mem[sp] = pc;
             sp -= 1;
             sp = interrupt_table[i];
+            printf("INTERRUPT!\n");
+            break;
         }
     }
 }
