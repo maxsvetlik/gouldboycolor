@@ -44,7 +44,7 @@ char                disable_next;
 char                enable_next;
 
 unsigned int       inst_cycles;
-
+unsigned int       inst_cycles_last;
 /* The main execution method for the CPU.
  * Though the ops are in a big switch, modern compilers can
  * optimize access at sufficient length.
@@ -57,6 +57,7 @@ int cycle(){
 
     unsigned char op = inst;
     
+    inst_cycles_last = inst_cycles;
     if(DEBUG && DB_OPCODE){
         printf("Instruction: %x\n",inst);
     }
@@ -1052,11 +1053,11 @@ int cycle(){
     }
     if(f_ime)
         interrupt_handler();
-    check_graphics();
+    graphics_main(mem, inst_cycles - inst_cycles_last);
+    //check_graphics();
     //printf("instcyl: %d\n", inst_cycles);
-    if(inst_cycles >= 64){ //RENDERCYCLES){
-        inst_cycles = 0;
-        draw_tile(mem);
+    if(inst_cycles >= RENDERCYCLES){//64){ //RENDERCYCLES){
+       inst_cycles = 0;
     }
     return 0;
 }
@@ -1185,8 +1186,8 @@ void reset(){
     FILE *fp;
     char *mode = "r";
     char inputFilename[] = "DMG_ROM.bin";
-    char noncopyrightgame[] = "roms/zelda_links_awakening.gb";
-    unsigned char hex[512] = "";
+    char noncopyrightgame[] = "roms/tetris.gb";
+    unsigned char hex[32768] = "";
     fp = fopen(inputFilename, mode);
     int i;
     size_t bytes = 0;
@@ -1210,12 +1211,15 @@ void reset(){
         exit(1);
     }
     
-    bytes = fread ( &hex, 1, 512, fp);
+    bytes = fread ( &hex, 1, 32768, fp);
         for(i = 255; i < bytes; i++) {
             mem[i] = hex[i];
-            printf ( "setting in mem[%x] %x\n", i, mem[i]);
+            //printf ( "setting in mem[%x] %x\n", i, mem[i]);
         }
-    
+
+
+    //initialize graphics systems
+    //init_visualization();
     
     //execute loaded ROM
     pc = 0x00;
@@ -1227,5 +1231,6 @@ void halt(){}
 void stop(){}
 void cpu_init(){
     reset();
-    mem[0x100] = 0x12;
+    draw_tile(mem);
+    //mem[0x100] = 0x12;
 }

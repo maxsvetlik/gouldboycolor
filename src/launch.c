@@ -22,5 +22,6 @@ int main(int argc, char** argv){
     init_visualization();
     cpu_init();
     interactive_session();
+    exit_clean();
     return 0;
 }

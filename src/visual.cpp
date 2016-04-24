@@ -9,6 +9,7 @@
 
 #include "visualization.h"
 #include "video_const.h"
+#include "interrupt.h"
 
 const int SCREEN_WIDTH = 166;
 const int SCREEN_HEIGHT = 140;
@@ -32,6 +33,8 @@ SDL_Renderer* renderer;
 SDL_Texture* fullTexture;
 
 SDL_Rect screen_rect;
+
+int cyc_count  = REWRITE_CYCLES;
 
 void initilize_colors(SDL_Surface *surface){
     white = SDL_MapRGBA(surface->format, 255,255,255,0xFF); 
@@ -72,7 +75,8 @@ void init_visualization(){
         renderer = SDL_CreateRenderer( win, -1, SDL_RENDERER_ACCELERATED );
         //SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
         //SDL_UpdateWindowSurface( win );
-       }
+        printf("Graphics Initialization successful.\n");
+        }
     }
     fullBuff =  SDL_CreateRGBSurface(0,BUFFER_WIDTH,BUFFER_HEIGHT,32,0,0,0,0);
     initilize_colors(fullBuff);
@@ -150,14 +154,14 @@ void draw_tile(unsigned char mem[]){
     char signed_tiles = 0;
     int bindex;
 
-
     Uint32 color;
     int pallet_col;
     Uint32 * buff_pix = (Uint32 *)fullBuff->pixels;
-    mem[0xFF44] = 0x90;
+    //mem[0xFF44] = 0x90;
     //check the LCDC register, set approriate flags
     unsigned char lcdc = mem[LCDC];
     char lcd_enable = !!(lcdc & 0x80);
+    
     if(lcd_enable){
         //TODO:set window tile map display region
         //TODO:set window display enable
@@ -208,7 +212,6 @@ void draw_tile(unsigned char mem[]){
                 draw_vect[7] = ((msb & 1 << 0) << 1) + ((lsb & 1 << 0) >> 0);
                 
                 draw_line(draw_vect, x, y+(k/2));
-                //flush_to_screen(mem);
             }
             if(x >= 248){ 
                 x = 0; 
@@ -221,7 +224,73 @@ void draw_tile(unsigned char mem[]){
 
     //update window only after all lines are updated
     flush_to_screen(mem);
-    //SDL_UpdateWindowSurface( window ); 
+}
+
+
+/* Features may expand, but currently makes interrupt requests based on state, 
+ * and handles actual rendering.
+ *
+ * Helper function for graphics_main()
+ */
+void draw(unsigned char mem[]){
+    if(mem[LCDC] & (1 << 7)){
+        mem[LY] = mem[LY] + 1;
+        cyc_count = REWRITE_CYCLES;
+        unsigned char scanLine = mem[LY] ;
+        
+        if(scanLine == LY_BASE){
+            unsigned char requestFlag = mem[IFFLAG];
+            mem[IFFLAG] = requestFlag | 1; //set the Vblank interrupt    
+        }
+        if(scanLine > LY_MAX)
+            mem[LY] = 0 ;
+        
+        if(scanLine < LY_BASE){
+            draw_tile(mem);
+        }
+    }
+}
+
+/* The main control function for drawing and rendering, which does so conditionally on the internal state 
+ * of the gameboy.
+ * This function crucially maintains timing for graphic rendering
+ */
+void graphics_main(unsigned char mem[], unsigned int cycles){
+    set_lcd(mem);
+
+    if(mem[LCDC] & (1 << 7))        //keep relative time
+        cyc_count -= cycles;
+
+    if (mem[LY] > LY_MAX)           //reset once maximum is reached
+        mem[LY] = 0;
+
+    if (cyc_count <= 0)             //write to screen buffer
+        draw(mem);
+}
+/*
+ * This method regards the state of the LCD status, including modes.
+ * When the lcd switches modes, various interrupts are generated.
+ * The generation of interrupts are facilitated here.
+ */
+void set_lcd(unsigned char mem[]){
+    unsigned char lcds      = mem[LCDS];
+    unsigned char lcdc      = mem[LCDC];
+    
+    if(!(lcdc & (0x1<<7))){ //0 => LCD disabled
+        mem[LY] = 0;
+        lcds = lcds & 0xFC;
+        lcds = lcds | 1;
+        mem[LCDS] = lcds;
+        return;
+    }
+
+    unsigned char ly = mem[LY];
+    unsigned char cur_mode = lcds & 0x3;
+    
+    // set mode as vertical blank
+    //TODO: add mode tracking for Vblank
+    //TODO: add mode tracking & interrupt reqs for other interrupts
+    
 }
 
 //Exit SDL cleanly

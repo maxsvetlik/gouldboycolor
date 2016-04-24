@@ -18,7 +18,7 @@ void disable_interrupts(){
  */
 void interrupt_handler(){
     unsigned char f_if = mem[IFFLAG];
-    unsigned char f_ie = mem[IEFLAG];
+    //unsigned char f_ie = mem[IEFLAG];
     unsigned char mask = 0x1;
     
     //error check. we should never enter the handler if 
@@ -31,7 +31,7 @@ void interrupt_handler(){
     int i;
     //5 interrupt vector entries
     for(i = 0; i < 5; i++){
-        if((f_if & mask) && (f_ie & mask)){
+        if((f_if & mask)){// && (f_ie & mask)){
             f_ime = 0;
             mem[sp] = pc;
             sp -= 1;
@@ -39,5 +39,6 @@ void interrupt_handler(){
             printf("INTERRUPT!\n");
             break;
         }
+        mask = mask << 1;
     }
 }

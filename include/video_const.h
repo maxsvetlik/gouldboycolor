@@ -26,7 +26,8 @@
 * Consult the documentation for Mode explaination.
  */
 
-#define LCDC    0xFF40  //
+#define LCDC    0xFF40  //LCD Control?
+#define LCDS    0xFF41  //LCD Status
 #define SCY     0xFF42  //LCD Scroll y-coordinate
 #define SCX     0xFF43  //LCD Scroll x-coordinate
 #define LY      0xFF44  //LCDC Y-coordinate
@@ -49,7 +50,8 @@
 #define OBP0    0xFF48  //Object palette 0. same as BGP BUT lower two bits not used since 00 -> transparent
 #define OBP1    0xFF49  //Object palette 1. read above about transparency.
 
-    /*Color palettes*/
+/*Color palettes*/
+//TODO:add multi pallete support
 
 /*DMA TRANSFERS*/
 #define DMA     0xFF46
@@ -57,4 +59,6 @@
 // Some basic constants for tile processing and the like
 #define BYTESPERTILE 16
 #define LINESPERTILE 8  //8 lines, 2 bytes each specifying least and most significant pallete bits
-
+#define LY_BASE     0x90//Value that triggers VBlank (also the # of screen lines)
+#define LY_MAX      0x99
+#define REWRITE_CYCLES       456
