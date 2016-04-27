@@ -15,6 +15,7 @@ static volatile int keepRunning = 1;
 
 void intHandler(int dummy) {
     keepRunning = 0;
+    exit(0);
 }
 
 int main(int argc, char** argv){

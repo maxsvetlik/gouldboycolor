@@ -35,7 +35,7 @@ void interrupt_handler(){
             f_ime = 0;
             mem[sp] = pc;
             sp -= 1;
-            sp = interrupt_table[i];
+            pc = interrupt_table[i];
             printf("INTERRUPT!\n");
             break;
         }

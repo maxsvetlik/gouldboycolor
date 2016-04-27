@@ -86,7 +86,7 @@ void print_global_menu(){
     printf("3 - Read State\n");
     printf("4 - Read Memory\n");
     printf("6 - Cycle until PC matches specified value\n");
-    printf("7 - Toggle Visual Render\n");
+    printf("7 - Cycle while true\n");
     printf("8 - Call bulk cycle\n");
     printf("9 - Call cycle\n");
 }
@@ -147,13 +147,22 @@ void handle_set_reg(){
             printf("Unsupported option.\n");
     }
 }
-void run_until(){
-    printf("Enter the desired stackpointer in decimal form: ");
+void run_until_pc(){
+    printf("Enter the desired program counter in decimal form: ");
     int result = getint();
     if(result == '\n')
          result = getint();
     printf("\n");
     while(pc != result)
+        cycle();
+}
+void run_until_sp(){
+    printf("Enter the desired stackpointer in decimal form: ");
+    int result = getint();
+    if(result == '\n')
+         result = getint();
+    printf("\n");
+    while(sp != result)
         cycle();
 }
 void bulkcycle(){
@@ -193,8 +202,9 @@ void interactive_session(){
                 val2 = getint();
                 print_mem(val1, val2);
                 break;
-            case('6'): run_until(); break;
-            case('7'): toggle_render(); break;
+            case('5'): run_until_sp(); break;
+            case('6'): run_until_pc(); break;
+            case('7'): while(1) cycle(); break;
             case('8'): bulkcycle();         break;
             case('9'): if(cycle()) exit(-1);
                        // if(render) draw_tile(mem); 

@@ -57,6 +57,7 @@ void stop();
 void reset();
 void clear_mem();
 void cpu_init();
+void unmap_bios();
 unsigned char get_bit(unsigned char reg, unsigned char bit);
 unsigned char set_bit(unsigned char reg, unsigned char bit);
 unsigned char reset_bit(unsigned char reg, unsigned char bit);

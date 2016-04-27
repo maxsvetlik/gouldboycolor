@@ -191,7 +191,8 @@ void draw_tile(unsigned char mem[]){
         color_map[1] = (pallete >> 2) & 0x3;
         color_map[2] = (pallete >> 4) & 0x3;
         color_map[3] = (pallete >> 6) & 0x3;
-
+        
+        unsigned char ly = mem[LY];
         for(i = 0; i < 1024; i+=1){
             unsigned char tile_num = mem[start+i]; 
             
@@ -223,7 +224,7 @@ void draw_tile(unsigned char mem[]){
     }
 
     //update window only after all lines are updated
-    flush_to_screen(mem);
+    //flush_to_screen(mem);
 }
 
 
@@ -236,18 +237,18 @@ void draw(unsigned char mem[]){
     if(mem[LCDC] & (1 << 7)){
         mem[LY] = mem[LY] + 1;
         cyc_count = REWRITE_CYCLES;
-        unsigned char scanLine = mem[LY] ;
+        unsigned char cur_line = mem[LY];
         
-        if(scanLine == LY_BASE){
-            unsigned char requestFlag = mem[IFFLAG];
-            mem[IFFLAG] = requestFlag | 1; //set the Vblank interrupt    
+        if(cur_line == LY_BASE)
+            mem[IFFLAG] = mem[IFFLAG] | 1; //set the Vblank interrupt    
+        
+        if(cur_line > LY_MAX){
+            mem[LY] = 0;
+            //draw_tile(mem);
+            flush_to_screen(mem);
         }
-        if(scanLine > LY_MAX)
-            mem[LY] = 0 ;
-        
-        if(scanLine < LY_BASE){
+        if(cur_line < LY_BASE)
             draw_tile(mem);
-        }
     }
 }
 

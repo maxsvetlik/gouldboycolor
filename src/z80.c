@@ -45,6 +45,7 @@ char                enable_next;
 
 unsigned int       inst_cycles;
 unsigned int       inst_cycles_last;
+char                bios_unmapped = 0;
 /* The main execution method for the CPU.
  * Though the ops are in a big switch, modern compilers can
  * optimize access at sufficient length.
@@ -1036,8 +1037,10 @@ int cycle(){
                     f_z = !reg[A]; f_s = 0; f_hc = 0; inst_cycles += 12; break;
         default: fprintf(stderr, "Undefined opcode. %x at %u.\n Halting. \n", op, sp);
                  crash_dump(); 
-                 return -1;                                break;
+                 exit(-1);                                break;
     }
+
+    //handle interrupt enable based on some special instructions
     if(enable_next == 1){
         enable_next = 2;
     }
@@ -1051,23 +1054,22 @@ int cycle(){
         disable_next = 0;
         disable_interrupts();
     }
+    //handle interrupts
     if(f_ime)
         interrupt_handler();
+    //handle graphics
     graphics_main(mem, inst_cycles - inst_cycles_last);
-    //check_graphics();
+    
     //printf("instcyl: %d\n", inst_cycles);
     if(inst_cycles >= RENDERCYCLES){//64){ //RENDERCYCLES){
        inst_cycles = 0;
     }
+    //unmap the lower 256 bytes and replace with that of the game cart
+    if(!bios_unmapped && mem[0xFF50]){
+        bios_unmapped = 1;
+        unmap_bios();
+    }
     return 0;
-}
-
-/*
- */
-void check_graphics(){
-    unsigned char ly = mem[LY];
-    if(ly > 144) //we're in V-blank
-        draw_tile(mem);
 }
 
 /* Rotates the register given by reg_num through the carry flag
@@ -1178,6 +1180,30 @@ void clear_mem(){
     for(i = 0; i < MEM_SIZE; i+=1)
         mem[i] = 0;
 }
+
+//unmap bios area for use as the cartridge
+void unmap_bios(){
+    FILE *fp;
+    char *mode = "r";
+    char noncopyrightgame[] = "roms/tetris.gb";
+    //char noncopyrightgame[] = "roms/cpu_instrs/individual/03-op sp,hl.gb";
+    unsigned char hex[256] = "";
+    int i;
+    size_t bytes = 0;
+
+    //Load in a handwritten, non-copyrighted gameboy file
+    fp = fopen(noncopyrightgame, mode);
+    if(fp == NULL) {
+        fprintf(stderr, "ERROR: Cannot read non copyright game. Is it in ./roms?. Bootstrap failed...\n");
+        exit(1);
+    }
+    
+    bytes = fread ( &hex, 1, 256, fp);
+        for(i = 0; i < bytes; i++) {
+            mem[i] = hex[i];
+            //printf ( "setting in mem[%x] %x\n", i, mem[i]);
+        }
+}
 //power on or reset sequence.
 //initializes the state as the gameboy expects
 void reset(){
@@ -1187,6 +1213,7 @@ void reset(){
     char *mode = "r";
     char inputFilename[] = "DMG_ROM.bin";
     char noncopyrightgame[] = "roms/tetris.gb";
+    //char noncopyrightgame[] = "roms/cpu_instrs/individual/03-op sp,hl.gb";
     unsigned char hex[32768] = "";
     fp = fopen(inputFilename, mode);
     int i;
@@ -1212,7 +1239,7 @@ void reset(){
     }
     
     bytes = fread ( &hex, 1, 32768, fp);
-        for(i = 255; i < bytes; i++) {
+        for(i = 256; i < bytes; i++) {
             mem[i] = hex[i];
             //printf ( "setting in mem[%x] %x\n", i, mem[i]);
         }
@@ -1232,5 +1259,6 @@ void stop(){}
 void cpu_init(){
     reset();
     draw_tile(mem);
+    flush_to_screen(mem);
     //mem[0x100] = 0x12;
 }
